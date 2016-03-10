@@ -1,0 +1,51 @@
+﻿生成启动时间为 2016/1/19 19:15:21。
+     1>项目“F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib\VRLib.vcxproj”在节点 2 上(Build 个目标)。
+     1>Build:
+         "C:\Program Files (x86)\Sysprogs\VisualGDB\\VisualGDB.exe" /build "F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib\VRLib.vcxproj" "/solution:F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VrNative\Oculus360VideosSDK\Oculus360VideosSDK.sln" "/config:Debug" "/platform:Win32"
+     1>EXEC : warning : Could not find the auto-update marker in F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib\jni\Android.mk. Source list will not be updated.
+         VisualGDB: Run "E:\android-ndk-r10\ndk-build.cmd NDK_DEBUG=0 APP_PLATFORM=android-19 VGDB_VSCONFIG=Debug V=0 -j10 NDK_DEBUG=1 OVR_DEBUG=1" in directory "F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib" on local computer
+     1>Android NDK : warning : Ignoring unknown import directory: jni/../../3rdParty/libjpeg-turbo
+     1>Android NDK : warning : Ignoring unknown import directory: jni/../../3rdParty/breakpad/android
+         [armeabi-v7a] Compile++ thumb: JavaVr <= PureJava.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_FileFILE.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_Log.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_Math.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_RefCount.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_String_FormatUtil.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_System.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_ThreadsPthread.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_Timer.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_JSON.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_MemBuffer.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= NativeBuildStrings.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= VrApi.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= HmdInfo.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= SystemActivities.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= MY_SensorGyroDevice.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_DeviceHandle.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_LatencyTest.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_DeviceImpl.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_LatencyTestDeviceImpl.cpp
+         jni/VrApi/Sensors/OVR_DeviceImpl.cpp: In member function 'virtual OVR::Void OVR::DeviceManagerImpl::EnumerateAllFactoryDevices()':
+     1>F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib\jni\VrApi\Sensors\OVR_DeviceImpl.cpp(478,31): error : format not a string literal and no format arguments [-Werror=format-security]
+                LogText(info.ProductName);
+                                        ^
+         cc1plus.exe: all warnings being treated as errors
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_SensorCalibration.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_GyroTempCalibration.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_SensorFusion.cpp
+         [armeabi-v7a] Compile++ arm  : oculus <= OVR_SensorTimeFilter.cpp
+         make.exe: *** [obj/local/armeabi-v7a/objs-debug/oculus/VrApi/Sensors/OVR_DeviceImpl.o] Error 1
+         make.exe: *** Waiting for unfinished jobs....
+         -------------------------------------------------------------
+         Command exited with code 2
+         Executable: E:\android-ndk-r10\ndk-build.cmd
+         Arguments: NDK_DEBUG=0 APP_PLATFORM=android-19 VGDB_VSCONFIG=Debug V=0 -j10 NDK_DEBUG=1 OVR_DEBUG=1
+         Directory: F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib
+     1>VisualGDB : error : Command-line action failed
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.MakeFile.Targets(38,5): error MSB3073: 命令“"C:\Program Files (x86)\Sysprogs\VisualGDB\\VisualGDB.exe" /build "F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib\VRLib.vcxproj" "/solution:F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VrNative\Oculus360VideosSDK\Oculus360VideosSDK.sln" "/config:Debug" "/platform:Win32"”已退出，代码为 1。
+     1>已完成生成项目“F:\vr\ovr_mobile_sdk_zp\ovr_mobile_sdk_0.5.1\VRLib\VRLib.vcxproj”(Build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:09.06

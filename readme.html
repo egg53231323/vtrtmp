@@ -1,0 +1,59 @@
+<!DOCTYPE html><html><head><title>FancyVrPlayer编译部署说明</title><meta charset='utf-8'><link href='https://dn-maxiang.qbox.me/res-min/themes/marxico.css' rel='stylesheet'><style></style></head><body><div id='preview-contents' class='note-content'>
+                        <div id="wmd-preview" class="preview-content"></div>
+                    <div id="wmd-preview-section-5" class="wmd-preview-section preview-content">
+
+</div><div id="wmd-preview-section-2589" class="wmd-preview-section preview-content">
+
+<h1 id="fancyvrplayer编译部署说明">FancyVrPlayer编译部署说明</h1>
+
+<p></p>
+
+<hr></div><div id="wmd-preview-section-2492" class="wmd-preview-section preview-content">
+
+<h2 id="目录结构">目录结构</h2>
+
+<ul><li><p>VRLib：所有和vr相关的底层实现库，由Oculus开源，我们做过小幅度的调整，加入了手机内陀螺仪以及自研的陀螺仪的支持。</p></li>
+<li><p>VrNative：本目录下是所有使用VRLib的工程，里面的工程。</p></li>
+<li><p>out：保存编译中生成的临时文件。这些文件都不需要上传到git。</p></li>
+<li><p>VRPlatform：VRLib需要的一个库。</p></li>
+</ul></div><div id="wmd-preview-section-828" class="wmd-preview-section preview-content">
+
+<h2 id="编译部署">编译部署</h2>
+
+<ul><li>安装ndk 最新版本。</li>
+<li>目前给出的2个工程 可以使用eclipse编译，也可以使用visual studio 2013 + visualGDB 编译</li>
+<li>提供一个测试用的video，电脑连接手机后，执行：installToPhone.bat</li>
+<li>fancyVrPlayer编译前，需要先编译vrlib工程。</li>
+</ul></div><div id="wmd-preview-section-2412" class="wmd-preview-section preview-content">
+
+<h2 id="架构简要说明">架构简要说明</h2>
+
+<p><strong>大致工作流程：</strong></p>
+
+<ol><li rel="1">java层使用安卓提供的MediaPlayer进行影片解码，MediaPlayer不直接输出图像到窗口，而是输出到SurfaceTexture中</li>
+<li rel="2">vrlib拿到SurfaceTexture再根据影片类型、陀螺仪姿态来渲染左右眼的图像</li>
+<li rel="3">最后vrlib把左右眼的图像输出到activity中的两个surface中。</li>
+</ol>
+
+<p><strong>线程模型</strong></p>
+
+<ul><li>主线程：安卓创建</li>
+<li>ui线程 ：安卓java的ui线程，处理ui，播放影片</li>
+<li>timewrap 线程：vrlib创建，native。负责执行异步的timewrap。</li>
+<li><p>陀螺仪线程：vrlib创建，native。负责从陀螺仪拿数据</p></li>
+<li><p>fancyVrPlayer只是一个demo性质的工程。现在这份代码给出的功能是：使用手机自带的陀螺仪实现vr影片的播放，使用自研陀螺仪的功能目前没有包含在这份代码里面。</p></li>
+</ul></div><div id="wmd-preview-section-2426" class="wmd-preview-section preview-content">
+
+<h2 id="注意事项">注意事项</h2>
+
+<ul><li>开发机器最好root，因为后面需要链接陀螺仪，手机就没有usb口可用了，不root的话麻烦点。</li>
+<li><ul>
+<li>播放影片的activity有一些限制：</li>
+<li>layout 必须有2个 SurfaceView，详细请看 activity_main.xml</li>
+<li>Activity的基类必须是vrlib提供的VrActivity。</li>
+<li>播放影片之前需要初始化jni的库</li></ul></li>
+</ul>
+
+</div><div id="wmd-preview-section-2427" class="wmd-preview-section preview-content">
+
+<pre class="prettyprint hljs-dark"><code class="hljs actionscript"><span class="hljs-comment line-number">1.</span>    <span class="hljs-keyword">static</span><br><span class="hljs-comment line-number">2.</span>    {<br><span class="hljs-comment line-number">3.</span>         System.loadLibrary(<span class="hljs-string">"ovrapp"</span>);<br><span class="hljs-comment line-number">4.</span>    }   <br></code></pre></div><div id="wmd-preview-section-footnotes" class="preview-content"></div></div></body></html>
