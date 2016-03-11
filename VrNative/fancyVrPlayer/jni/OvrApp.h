@@ -53,12 +53,13 @@ public:
 	GlProgram			PanoramaProgramVRP;
 	GlProgram			PanoramaProgram3DV;
 	GlProgram			FadedPanoramaProgram;
-	GlProgram			BlackProgram;
 	//0 为普通，1 为 VirtualRealPorn，2 为 3D360
 	int					VideoMode;
 	GlGeometry			Globe;
 	GlGeometry			eye_quad;
 	OvrSceneView		Scene;
+
+	Array<String> 		SearchPaths;
 
 private:
 	void UninstallShader();

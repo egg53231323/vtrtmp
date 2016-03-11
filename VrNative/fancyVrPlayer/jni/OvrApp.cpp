@@ -87,7 +87,7 @@ OvrApp::OvrApp()
 	CurrentVideoHeight=480;
 	BackgroundWidth=0;
 	BackgroundHeight= 0 ;
-	VideoMode=0;
+	VideoMode=3;
 }
 
 OvrApp::~OvrApp()
@@ -101,7 +101,6 @@ void OvrApp::UninstallShader()
 	DeleteProgram(PanoramaProgram3DV);
 	DeleteProgram(PanoramaProgramVRP);
 	DeleteProgram(FadedPanoramaProgram);
-	DeleteProgram(BlackProgram);
 }
 void OvrApp::InitShader() {
 	SSSA_LOG_FUNCALL(1);
@@ -123,10 +122,6 @@ void OvrApp::InitShader() {
 					"uniform highp mat4 Mvpm;\nuniform highp mat4 Texm;\nattribute vec4 Position;\nattribute vec2 TexCoord;\nvarying  highp vec2 oTexCoord;\nvoid main()\n{\n   gl_Position = Mvpm * Position;\n   oTexCoord = vec2( Texm * vec4( TexCoord, 0, 1 ) );\n}\n",
 					"#extension GL_OES_EGL_image_external : require\nuniform samplerExternalOES Texture0;\nuniform sampler2D Texture1;\nuniform lowp vec4 UniformColor;\nvarying highp vec2 oTexCoord;\nvoid main()\n{\n	lowp vec4 staticColor = texture2D( Texture1, oTexCoord );\n	lowp vec4 movieColor = texture2D( Texture0, oTexCoord );\n	gl_FragColor = UniformColor * mix( movieColor, staticColor, staticColor.w );\n}\n");
 
-	BlackProgram =
-				BuildProgram(
-						"uniform highp mat4 Mvpm;\nattribute vec4 Position;\nvoid main()\n{\ngl_Position = Mvpm * Position;\n}\n",
-						"void main()\n{\ngl_FragColor =vec4(0,0,0,0);\n}\n");
 }
 
 void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSON, const char * launchIntentURI )
@@ -135,6 +130,11 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 	LOG( "--------------- Oculus360Videos OneTimeInit ---------------" );
 
 	VideoMode = 0;
+	app->GetStoragePaths().PushBackSearchPathIfValid(EST_SECONDARY_EXTERNAL_STORAGE, EFT_ROOT, "RetailMedia/", SearchPaths);
+	app->GetStoragePaths().PushBackSearchPathIfValid(EST_SECONDARY_EXTERNAL_STORAGE, EFT_ROOT, "", SearchPaths);
+	app->GetStoragePaths().PushBackSearchPathIfValid(EST_PRIMARY_EXTERNAL_STORAGE, EFT_ROOT, "RetailMedia/", SearchPaths);
+	app->GetStoragePaths().PushBackSearchPathIfValid(EST_PRIMARY_EXTERNAL_STORAGE, EFT_ROOT, "", SearchPaths);
+
 
 	app->GetVrParms().colorFormat = COLOR_8888;
 	app->GetVrParms().depthFormat = DEPTH_16;
@@ -147,6 +147,17 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 	Globe = BuildGlobe();
 	eye_quad = BuildTesselatedQuad(1,1);
 
+
+
+	MaterialParms materialParms;
+	materialParms.UseSrgbTextureFormats = ( app->GetVrParms().colorFormat == COLOR_8888_sRGB );
+	const char * scenePath = "oculus/tuscany.ovrscene";
+	String SceneFile;
+	GetFullPath( SearchPaths, scenePath, SceneFile );
+
+	//Scene.LoadWorldModel( SceneFile, materialParms );
+	//Scene.YawOffset = -M_PI / 2;
+
 	// Stay exactly at the origin, so the panorama globe is equidistant
 	// Don't clear the head model neck length, or swipe view panels feel wrong.
 	VrViewParms viewParms = app->GetVrViewParms();
@@ -156,9 +167,7 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 
 	// Optimize for 16 bit depth in a modest theater size
 	Scene.Znear = 0.1f;
-	Scene.Zfar = 200.0f;
-	MaterialParms materialParms;
-	materialParms.UseSrgbTextureFormats = ( app->GetVrParms().colorFormat == COLOR_8888_sRGB );
+	Scene.Zfar = 2000.0f;
 
 
 }
@@ -296,16 +305,6 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 	int tmpIdxer=0;
 	LOG("DrawEyeView CP %d",tmpIdxer++);
 	const Matrix4f mvp = Scene.DrawEyeView( eye, fovDegrees );
-
-	//先绘制一个黑色的球体
-	glUseProgram(BlackProgram.program);
-	const Matrix4f view = Scene.ViewMatrixForEye(0)  ;//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
-	const Matrix4f proj = Scene.ProjectionMatrixForEye( 0, fovDegrees );
-	glUniformMatrix4fv( BlackProgram.uMvp, 1, GL_FALSE, ( proj * view).Transposed().M[ 0 ] );
-
-	glDisable( GL_CULL_FACE );
-	Globe.Draw();
-
 	if(MovieTexture)
 	{
 		LOG("DrawEyeView CP %d",tmpIdxer++);
@@ -317,11 +316,11 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 		//glActiveTexture( GL_TEXTURE1 );
 		//glBindTexture( GL_TEXTURE_2D, BackgroundTexId );
 
-
+		glDisable( GL_DEPTH_TEST );
+		glDisable( GL_CULL_FACE );
 
 		//GlProgram & prog = ( BackgroundWidth == BackgroundHeight ) ? FadedPanoramaProgram : PanoramaProgramVRP;
 		GlProgram* prog = NULL;
-
 		VideoMode =0;
 		prog = &PanoramaProgram;
 		LOG("DrawEyeView CP %d",tmpIdxer++);
@@ -343,20 +342,17 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 //		LOG("DrawEyeView CP %d",tmpIdxer++);
 
 
-		const Matrix4f view = VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
+		const Matrix4f view = Scene.ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
 		const Matrix4f proj = Scene.ProjectionMatrixForEye( 0, fovDegrees );
 
 		Matrix4f world = Matrix4f::Identity();
 		//world.Scaling(500,500,500);
-
-		//world.RotationX(M_PI / 2);
-		//world.Translation(0,1,0);
-
-		const int toggleStereo = 0;//eye;//VideoMenu->IsOpenOrOpening() ? 0 : eye;
-		glUniformMatrix4fv( prog->uTexm, 1, GL_FALSE, TexmForVideo( toggleStereo ).Transposed().M[ 0 ] );
+		//world.Translation(90000,0,0);
+		//world=Matrix4f::RotationX(-3.14159 / 2) * world;
+		world=world.Translation(0,0,-1.0f) * world;
+		glUniformMatrix4fv( prog->uTexm, 1, GL_FALSE, TexmForVideo( eye ).Transposed().M[ 0 ] );
 		glUniformMatrix4fv( prog->uMvp, 1, GL_FALSE, ( proj * view * world ).Transposed().M[ 0 ] );
 		glUniform4f(prog->uEye, (float)eye, 0.0f, 0.0f, 0.0f);
-
 
 		eye_quad.Draw();
 		glBindTexture( GL_TEXTURE_EXTERNAL_OES, 0 );	// don't leave it bound
@@ -366,6 +362,19 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 }
 Matrix4f	OvrApp::TexmForVideo( const int eye )
 {
+	return eye ?
+		Matrix4f(
+		0.5, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1 )
+		:
+		Matrix4f(
+		0.5, 0, 0, 0.5,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1 );
+
 	SSSA_LOG_FUNCALL(1);
 	if (VideoMode == 0)
 	{//普通360模式
@@ -388,6 +397,21 @@ Matrix4f	OvrApp::TexmForVideo( const int eye )
 			0, 0, 1, 0,
 			0, 0, 0, 1
 			);
+	}
+	else if (VideoMode == 3) //left right 3d video
+	{	// left / right stereo panorama
+		return eye ?
+			Matrix4f(
+			0.5, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1 )
+			:
+			Matrix4f(
+			0.5, 0, 0, 0.5,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1 );
 	}
 	return Matrix4f::Identity();
 
