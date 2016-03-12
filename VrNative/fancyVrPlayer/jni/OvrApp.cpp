@@ -101,6 +101,7 @@ void OvrApp::UninstallShader()
 	DeleteProgram(PanoramaProgram3DV);
 	DeleteProgram(PanoramaProgramVRP);
 	DeleteProgram(FadedPanoramaProgram);
+	DeleteProgram(blackProgram);
 }
 void OvrApp::InitShader() {
 	SSSA_LOG_FUNCALL(1);
@@ -122,6 +123,10 @@ void OvrApp::InitShader() {
 					"uniform highp mat4 Mvpm;\nuniform highp mat4 Texm;\nattribute vec4 Position;\nattribute vec2 TexCoord;\nvarying  highp vec2 oTexCoord;\nvoid main()\n{\n   gl_Position = Mvpm * Position;\n   oTexCoord = vec2( Texm * vec4( TexCoord, 0, 1 ) );\n}\n",
 					"#extension GL_OES_EGL_image_external : require\nuniform samplerExternalOES Texture0;\nuniform sampler2D Texture1;\nuniform lowp vec4 UniformColor;\nvarying highp vec2 oTexCoord;\nvoid main()\n{\n	lowp vec4 staticColor = texture2D( Texture1, oTexCoord );\n	lowp vec4 movieColor = texture2D( Texture0, oTexCoord );\n	gl_FragColor = UniformColor * mix( movieColor, staticColor, staticColor.w );\n}\n");
 
+	blackProgram=
+			BuildProgram(
+					"uniform highp mat4 Mvpm;\nattribute vec4 Position;\nvoid main()\n{\ngl_Position = Mvpm * Position;\n}\n",
+					"void main(){gl_FragColor = vec4(0,0,0,1);}");
 }
 
 void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSON, const char * launchIntentURI )
@@ -315,12 +320,18 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 
 		//glActiveTexture( GL_TEXTURE1 );
 		//glBindTexture( GL_TEXTURE_2D, BackgroundTexId );
+		const Matrix4f view = Scene.ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
+		const Matrix4f proj = Scene.ProjectionMatrixForEye( 0, fovDegrees );
 
+		//先绘制背景，用一个黑色的球体
 		glDisable( GL_DEPTH_TEST );
 		glDisable( GL_CULL_FACE );
+		GlProgram* prog = &blackProgram;
+		glUseProgram( prog->program );
+		glUniformMatrix4fv( prog->uMvp, 1, GL_FALSE, ( proj * view ).Transposed().M[ 0 ] );
+		Globe.Draw();
 
-		//GlProgram & prog = ( BackgroundWidth == BackgroundHeight ) ? FadedPanoramaProgram : PanoramaProgramVRP;
-		GlProgram* prog = NULL;
+
 		VideoMode =0;
 		prog = &PanoramaProgram;
 		LOG("DrawEyeView CP %d",tmpIdxer++);
@@ -342,8 +353,6 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 //		LOG("DrawEyeView CP %d",tmpIdxer++);
 
 
-		const Matrix4f view = Scene.ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
-		const Matrix4f proj = Scene.ProjectionMatrixForEye( 0, fovDegrees );
 
 		Matrix4f world = Matrix4f::Identity();
 		//world.Scaling(500,500,500);

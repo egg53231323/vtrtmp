@@ -53,6 +53,7 @@ public:
 	GlProgram			PanoramaProgramVRP;
 	GlProgram			PanoramaProgram3DV;
 	GlProgram			FadedPanoramaProgram;
+	GlProgram			blackProgram;
 	//0 为普通，1 为 VirtualRealPorn，2 为 3D360
 	int					VideoMode;
 	GlGeometry			Globe;
