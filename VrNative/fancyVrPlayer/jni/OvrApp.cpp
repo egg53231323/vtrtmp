@@ -126,7 +126,7 @@ void OvrApp::InitShader() {
 	blackProgram=
 			BuildProgram(
 					"uniform highp mat4 Mvpm;\nattribute vec4 Position;\nvoid main()\n{\ngl_Position = Mvpm * Position;\n}\n",
-					"void main(){gl_FragColor = vec4(0,0,0,1);}");
+					"void main(){gl_FragColor = vec4(1,1,1,1);}");
 }
 
 void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSON, const char * launchIntentURI )
@@ -168,7 +168,12 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 	VrViewParms viewParms = app->GetVrViewParms();
 	viewParms.EyeHeight = 0.0f;
 	app->SetVrViewParms( viewParms );
-	app->SetShowFPS(true);
+	app->SetShowFPS(false);
+
+	//播放影片需要关闭time wrap
+	ovrModeParms param=app->GetVrModeParms();
+	param.AsynchronousTimeWarp = false;
+	app->SetVrModeParms(param);
 
 	// Optimize for 16 bit depth in a modest theater size
 	Scene.Znear = 0.1f;
@@ -320,7 +325,10 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 
 		//glActiveTexture( GL_TEXTURE1 );
 		//glBindTexture( GL_TEXTURE_2D, BackgroundTexId );
-		const Matrix4f view = Scene.ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
+		const float eyeOffset = ( eye ? -1 : 1 ) * 0.5f * Scene.ViewParms.InterpupillaryDistance;
+		const Matrix4f view =  Matrix4f::Translation( eyeOffset, 0.0f, 0.0f );
+
+		//const Matrix4f view = Scene.ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
 		const Matrix4f proj = Scene.ProjectionMatrixForEye( 0, fovDegrees );
 
 		//先绘制背景，用一个黑色的球体
@@ -355,10 +363,11 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 
 
 		Matrix4f world = Matrix4f::Identity();
-		//world.Scaling(500,500,500);
+
 		//world.Translation(90000,0,0);
 		//world=Matrix4f::RotationX(-3.14159 / 2) * world;
-		world=world.Translation(0,0,-1.0f) * world;
+		world=world.Scaling(1.5,0.75,1) * world.Translation(0,0,-1.5f) * world;
+
 		glUniformMatrix4fv( prog->uTexm, 1, GL_FALSE, TexmForVideo( eye ).Transposed().M[ 0 ] );
 		glUniformMatrix4fv( prog->uMvp, 1, GL_FALSE, ( proj * view * world ).Transposed().M[ 0 ] );
 		glUniform4f(prog->uEye, (float)eye, 0.0f, 0.0f, 0.0f);
@@ -371,18 +380,34 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 }
 Matrix4f	OvrApp::TexmForVideo( const int eye )
 {
-	return eye ?
+//	return eye ?
+//		Matrix4f(
+//		0.5, 0, 0, 0,
+//		0, 1, 0, 0,
+//		0, 0, 1, 0,
+//		0, 0, 0, 1 )
+//		:
+//		Matrix4f(
+//		0.5, 0, 0, 0.5,
+//		0, 1, 0, 0,
+//		0, 0, 1, 0,
+//		0, 0, 0, 1 );
+
+
+	return eye ?  //左右交换一下
+
 		Matrix4f(
-		0.5, 0, 0, 0,
+		0.5, 0, 0, 0.5,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1 )
 		:
 		Matrix4f(
-		0.5, 0, 0, 0.5,
+		0.5, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
-		0, 0, 0, 1 );
+		0, 0, 0, 1 )
+		;
 
 	SSSA_LOG_FUNCALL(1);
 	if (VideoMode == 0)
