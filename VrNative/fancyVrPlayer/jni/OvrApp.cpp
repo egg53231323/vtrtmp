@@ -19,7 +19,7 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 extern "C" {
 
 static jclass	GlobalActivityClass;
-jlong Java_oculus_MainActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
+jlong Java_oculus_movieViewActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
 		jstring fromPackageName, jstring commandString, jstring uriString )
 {
 	SSSA_LOG_FUNCALL(1);
@@ -29,13 +29,13 @@ jlong Java_oculus_MainActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz
 }
 
 
-void Java_oculus_MainActivity_nativeFrameAvailable( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
+void Java_oculus_movieViewActivity_nativeFrameAvailable( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
 	SSSA_LOG_FUNCALL(1);
 	OvrApp * panoVids = ( OvrApp * )( ( ( App * )interfacePtr )->GetAppInterface() );
 	panoVids->SetFrameAvailable( true );
 }
 
-jobject Java_oculus_MainActivity_nativePrepareNewVideo( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
+jobject Java_oculus_movieViewActivity_nativePrepareNewVideo( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
 	SSSA_LOG_FUNCALL(1);
 
 	// set up a message queue to get the return message
@@ -53,7 +53,7 @@ jobject Java_oculus_MainActivity_nativePrepareNewVideo( JNIEnv *jni, jclass claz
 	return texobj;
 }
 
-void Java_oculus_MainActivity_nativeSetVideoSize( JNIEnv *jni, jclass clazz, jlong interfacePtr, int width, int height ) {
+void Java_oculus_movieViewActivity_nativeSetVideoSize( JNIEnv *jni, jclass clazz, jlong interfacePtr, int width, int height ) {
 	SSSA_LOG_FUNCALL(1);
 	LOG( "nativeSetVideoSizes: width=%i height=%i", width, height );
 
@@ -61,7 +61,7 @@ void Java_oculus_MainActivity_nativeSetVideoSize( JNIEnv *jni, jclass clazz, jlo
 	panoVids->app->GetMessageQueue().PostPrintf( "video %i %i", width, height );
 }
 
-void Java_oculus_MainActivity_nativeVideoCompletion( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
+void Java_oculus_movieViewActivity_nativeVideoCompletion( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
 	SSSA_LOG_FUNCALL(1);
 	LOG( "nativeVideoCompletion" );
 
@@ -69,7 +69,7 @@ void Java_oculus_MainActivity_nativeVideoCompletion( JNIEnv *jni, jclass clazz, 
 	panoVids->app->GetMessageQueue().PostPrintf( "completion" );
 }
 
-void Java_oculus_MainActivity_nativeVideoStartError( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
+void Java_oculus_movieViewActivity_nativeVideoStartError( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
 	SSSA_LOG_FUNCALL(1);
 	LOG( "nativeVideoStartError" );
 

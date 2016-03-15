@@ -1,0 +1,179 @@
+{
+	"render_model":	{
+		"textures":	[{
+				"index":	0,
+				"name":	"stars_down",
+				"usage":	"diffuse",
+				"occlusion":	"opaque"
+			}, {
+				"index":	1,
+				"name":	"stars_forward",
+				"usage":	"diffuse",
+				"occlusion":	"opaque"
+			}, {
+				"index":	2,
+				"name":	"stars_right",
+				"usage":	"diffuse",
+				"occlusion":	"opaque"
+			}, {
+				"index":	3,
+				"name":	"stars_backward",
+				"usage":	"diffuse",
+				"occlusion":	"opaque"
+			}, {
+				"index":	4,
+				"name":	"stars_left",
+				"usage":	"diffuse",
+				"occlusion":	"opaque"
+			}, {
+				"index":	5,
+				"name":	"stars_up",
+				"usage":	"diffuse",
+				"occlusion":	"opaque"
+			}],
+		"joints":	[{
+				"name":	"root",
+				"transform":	"{ 0.010000 0.000000 0.000000 0.000000 0.000000 0.010000 0.000000 0.000000 0.000000 0.000000 0.010000 0.000000 0.000000 0.000000 0.000000 1.000000 }",
+				"animation":	"none",
+				"parmX":	0,
+				"parmY":	0,
+				"parmZ":	0,
+				"timeOffset":	0,
+				"timeScale":	1
+			}],
+		"tags":	[],
+		"surfaces":	[{
+				"source":	["skyBox_stars"],
+				"material":	{
+					"type":	"opaque",
+					"diffuse":	4,
+					"normal":	-1,
+					"specular":	-1,
+					"emissive":	-1,
+					"reflection":	-1
+				},
+				"bounds":	"{{ -766.922485 -766.922485 -766.922485 }{ -766.922485 766.922485 766.922485 }}",
+				"vertices":	{
+					"vertexCount":	4,
+					"position":	"Vector3f",
+					"normal":	"Vector3f",
+					"uv0":	"Vector2f",
+					"uv1":	"Vector2f"
+				},
+				"triangles":	{
+					"indexCount":	6,
+					"indices":	"UInt16"
+				}
+			}, {
+				"source":	["skyBox_stars"],
+				"material":	{
+					"type":	"opaque",
+					"diffuse":	0,
+					"normal":	-1,
+					"specular":	-1,
+					"emissive":	-1,
+					"reflection":	-1
+				},
+				"bounds":	"{{ -766.922485 -766.922485 -766.922485 }{ 766.922485 -766.922485 766.922485 }}",
+				"vertices":	{
+					"vertexCount":	4,
+					"position":	"Vector3f",
+					"normal":	"Vector3f",
+					"uv0":	"Vector2f",
+					"uv1":	"Vector2f"
+				},
+				"triangles":	{
+					"indexCount":	6,
+					"indices":	"UInt16"
+				}
+			}, {
+				"source":	["skyBox_stars"],
+				"material":	{
+					"type":	"opaque",
+					"diffuse":	3,
+					"normal":	-1,
+					"specular":	-1,
+					"emissive":	-1,
+					"reflection":	-1
+				},
+				"bounds":	"{{ -766.922485 -766.922485 -766.922485 }{ 766.922485 766.922485 -766.922485 }}",
+				"vertices":	{
+					"vertexCount":	4,
+					"position":	"Vector3f",
+					"normal":	"Vector3f",
+					"uv0":	"Vector2f",
+					"uv1":	"Vector2f"
+				},
+				"triangles":	{
+					"indexCount":	6,
+					"indices":	"UInt16"
+				}
+			}, {
+				"source":	["skyBox_stars"],
+				"material":	{
+					"type":	"opaque",
+					"diffuse":	5,
+					"normal":	-1,
+					"specular":	-1,
+					"emissive":	-1,
+					"reflection":	-1
+				},
+				"bounds":	"{{ -766.922485 766.922485 -766.922485 }{ 766.922485 766.922485 766.922485 }}",
+				"vertices":	{
+					"vertexCount":	4,
+					"position":	"Vector3f",
+					"normal":	"Vector3f",
+					"uv0":	"Vector2f",
+					"uv1":	"Vector2f"
+				},
+				"triangles":	{
+					"indexCount":	6,
+					"indices":	"UInt16"
+				}
+			}, {
+				"source":	["skyBox_stars"],
+				"material":	{
+					"type":	"opaque",
+					"diffuse":	1,
+					"normal":	-1,
+					"specular":	-1,
+					"emissive":	-1,
+					"reflection":	-1
+				},
+				"bounds":	"{{ -766.922485 -766.922485 766.922485 }{ 766.922485 766.922485 766.922485 }}",
+				"vertices":	{
+					"vertexCount":	4,
+					"position":	"Vector3f",
+					"normal":	"Vector3f",
+					"uv0":	"Vector2f",
+					"uv1":	"Vector2f"
+				},
+				"triangles":	{
+					"indexCount":	6,
+					"indices":	"UInt16"
+				}
+			}, {
+				"source":	["skyBox_stars"],
+				"material":	{
+					"type":	"opaque",
+					"diffuse":	2,
+					"normal":	-1,
+					"specular":	-1,
+					"emissive":	-1,
+					"reflection":	-1
+				},
+				"bounds":	"{{ 766.922485 -766.922485 -766.922485 }{ 766.922485 766.922485 766.922485 }}",
+				"vertices":	{
+					"vertexCount":	4,
+					"position":	"Vector3f",
+					"normal":	"Vector3f",
+					"uv0":	"Vector2f",
+					"uv1":	"Vector2f"
+				},
+				"triangles":	{
+					"indexCount":	6,
+					"indices":	"UInt16"
+				}
+			}]
+	}
+}

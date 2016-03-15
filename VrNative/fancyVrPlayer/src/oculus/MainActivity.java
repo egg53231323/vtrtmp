@@ -17,6 +17,7 @@ import com.fancyTech.fancyVrPlayer.R;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -45,9 +46,15 @@ public class MainActivity extends Activity{
         {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,long id) {
-				Toast.makeText(getApplicationContext(), "onItemClick",Toast.LENGTH_SHORT).show();
+				String txt=arg0.getItemAtPosition(pos).toString();
+				Log.d(TAG,txt);
+				Toast.makeText(getApplicationContext(), "pos="+txt,Toast.LENGTH_SHORT).show();
 				//Æô¶¯ÁíÒ»¸öactivity
-
+				Intent intent=new Intent(MainActivity.this,VideoInfoActivity.class);
+				Bundle mp4_info=new Bundle();
+				mp4_info.putString("filename", txt);
+				intent.putExtras(mp4_info);
+				startActivity(intent);
 			}
         		 
         });

@@ -32,6 +32,7 @@ AudioManager.OnAudioFocusChangeListener {
 	Surface movieSurface = null;
 	MediaPlayer mediaPlayer = null;	
 	AudioManager audioManager = null;
+	VR_MOVIE_PLAY_MODE playMode=VR_MOVIE_PLAY_MODE.NoPanorama_NoStereo;
 	
     public static native long nativeSetAppInterface( VrActivity act, String fromPackageNameString, String commandString, String uriString );
 	public static native SurfaceTexture nativePrepareNewVideo(long appPtr );
@@ -44,6 +45,42 @@ AudioManager.OnAudioFocusChangeListener {
 		 System.loadLibrary("ovrapp");
 	}
 	
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+		Intent intent = getIntent();
+
+		String commandString = VrLib.getCommandStringFromIntent( intent );
+		String fromPackageNameString = VrLib.getPackageStringFromIntent( intent );
+		String uriString = VrLib.getUriStringFromIntent( intent );
+
+		appPtr = nativeSetAppInterface( this, fromPackageNameString, commandString, uriString );
+		audioManager = (AudioManager) getSystemService( Context.AUDIO_SERVICE );
+		
+		
+		Bundle bundle=getIntent().getExtras();
+		final String fn=bundle.getString("filename");
+		playMode=(VR_MOVIE_PLAY_MODE)bundle.getSerializable("playmode");
+		//String videoDirPath= Environment.getExternalStorageDirectory().getPath()+"/oculus/360videos/";
+		//String fn=videoDirPath+"3d_tag2_2_60fps.mp4";
+
+		if(fn==null || fn.isEmpty())
+		{
+		    Toast.makeText(getApplicationContext(), "Movie文件名为空", 0).show();  
+		    return;
+		}
+		else
+			Toast.makeText(getApplicationContext(), "Movie文件名="+fn, 0).show();
+		
+		startMovie( fn );//play movie
+    }
+
+    void SetPlayMode(VR_MOVIE_PLAY_MODE e)
+    {
+    	playMode=e;
+    }
+    
 	void requestAudioFocus()
 	{
 		// Request audio focus
@@ -92,35 +129,7 @@ AudioManager.OnAudioFocusChangeListener {
 		}
 	}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
-       
-        
-		Intent intent = getIntent();
-		
-		
-		String commandString = VrLib.getCommandStringFromIntent( intent );
-		String fromPackageNameString = VrLib.getPackageStringFromIntent( intent );
-		String uriString = VrLib.getUriStringFromIntent( intent );
-
-		appPtr = nativeSetAppInterface( this, fromPackageNameString, commandString, uriString );
-		audioManager = (AudioManager) getSystemService( Context.AUDIO_SERVICE );
-		
-		String videoDirPath= Environment.getExternalStorageDirectory().getPath()+"/oculus/360videos/";
-		String fn=videoDirPath+"3d_tag2_2_60fps.mp4";
-
-		if(fn==null || fn.isEmpty())
-		{
-		    Toast.makeText(getApplicationContext(), "Movie文件名为空", 0).show();  
-		    return;
-		}
-		else
-			Toast.makeText(getApplicationContext(), "Movie文件名="+fn, 0).show();
-		//play movie
-		startMovie( fn );
-    }
 
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {

@@ -1,0 +1,40 @@
+﻿生成启动时间为 2015/12/29 1:35:38。
+     1>项目“H:\vr\from zp\VrNative\Oculus360VideosSDK\Oculus360Videos.vcxproj”在节点 2 上(Build 个目标)。
+     1>Build:
+         "C:\Program Files (x86)\Sysprogs\VisualGDB\\VisualGDB.exe" /build "H:\vr\from zp\VrNative\Oculus360VideosSDK\Oculus360Videos.vcxproj" "/solution:H:\vr\from zp\VrNative\Oculus360VideosSDK\Oculus360VideosSDK.sln" "/config:Debug" "/platform:Win32"
+     1>VisualGDB : warning : Found a source file with spaces in the path: "H:\vr\from zp\VrNative\Oculus360VideosSDK\AndroidManifest.xml". If the build fails, please rename/move it.
+     1>EXEC : warning : Could not find the auto-update marker in H:\vr\from zp\VrNative\Oculus360VideosSDK\jni\Android.mk. Source list will not be updated.
+         VisualGDB: Run "cmd.exe /C del /Q ..\..\VRLib\libs\armeabi-v7a\gdb*.*" in directory "H:\vr\from zp\VrNative\Oculus360VideosSDK" on local computer
+         找不到 H:\vr\from zp\VRLib\libs\armeabi-v7a\gdb*.*
+     1>VisualGDB : warning : Debuggable flag in H:\vr\from zp\VrNative\Oculus360VideosSDK\AndroidManifest.xml is set to false.
+     1>VisualGDB : warning : Please edit AndroidManifest.xml manually or enable automatic editing from VisualGDB project properties.
+         VisualGDB: Run "h:\android\android-ndk-r10c\ndk-build.cmd NDK_DEBUG=1 APP_PLATFORM=android-19 VGDB_VSCONFIG=Debug -j10 OVR_DEBUG=1" in directory "H:\vr\from zp\VrNative\Oculus360VideosSDK" on local computer
+         [armeabi-v7a] Compile++ arm  : oculus360videos <= Oculus360Videos.cpp
+         [armeabi-v7a] Compile++ arm  : oculus360videos <= VideoBrowser.cpp
+         [armeabi-v7a] Compile++ arm  : oculus360videos <= VideoMenu.cpp
+         [armeabi-v7a] Compile++ arm  : oculus360videos <= VideosMetaData.cpp
+         [armeabi-v7a] Compile++ arm  : oculus360videos <= OVR_TurboJpeg.cpp
+         [armeabi-v7a] Gdbserver      : [arm-linux-androideabi-4.6] libs/armeabi-v7a/gdbserver
+         [armeabi-v7a] Gdbsetup       : libs/armeabi-v7a/gdb.setup
+         [armeabi-v7a] SharedLibrary  : liboculus360videos.so
+         [armeabi-v7a] Install        : liboculus360videos.so => libs/armeabi-v7a/liboculus360videos.so
+         VisualGDB: Run "h:\android\ant-1.9.5\bin\ant.bat debug" in directory "H:\vr\from zp\VrNative\Oculus360VideosSDK" on local computer
+         Buildfile: H:\vr\from zp\VrNative\Oculus360VideosSDK\build.xml
+         
+         BUILD FAILED
+         H:\vr\from zp\VrNative\Oculus360VideosSDK\build.xml:90: Cannot find I:\OculusVRSDK\ADT\sdk\tools\ant\build.xml imported from H:\vr\from zp\VrNative\Oculus360VideosSDK\build.xml
+         
+         Total time: 0 seconds
+         -------------------------------------------------------------
+         Command exited with code 1
+         Executable: h:\android\ant-1.9.5\bin\ant.bat
+         Arguments: debug
+         Directory: H:\vr\from zp\VrNative\Oculus360VideosSDK
+     1>VisualGDB : error : Command-line action failed
+     1>EXEC : error : Build has failed. See the Output window for more details.
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.MakeFile.Targets(38,5): error MSB3073: 命令“"C:\Program Files (x86)\Sysprogs\VisualGDB\\VisualGDB.exe" /build "H:\vr\from zp\VrNative\Oculus360VideosSDK\Oculus360Videos.vcxproj" "/solution:H:\vr\from zp\VrNative\Oculus360VideosSDK\Oculus360VideosSDK.sln" "/config:Debug" "/platform:Win32"”已退出，代码为 1。
+     1>已完成生成项目“H:\vr\from zp\VrNative\Oculus360VideosSDK\Oculus360Videos.vcxproj”(Build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:07.23
