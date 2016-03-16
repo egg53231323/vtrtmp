@@ -9,9 +9,10 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
 
 *************************************************************************************/
+#include "OvrApp.h"
 #include <jni.h>
 #include <android/keycodes.h>
-#include "OvrApp.h"
+
 #include "PathUtils.h"
 #include "Kernel\OVR_Log.h"
 
@@ -137,8 +138,6 @@ OvrApp::OvrApp()
 	BackgroundHeight= 0 ;
 	VideoMode=3;
 
-	m_ScreenMode=SG_SPHERE;
-	m_TcMode=MM_LEFT_RIGHT;
 }
 
 OvrApp::~OvrApp()
@@ -351,7 +350,7 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 		glBindTexture( GL_TEXTURE_EXTERNAL_OES, MovieTexture->textureId );
 
 		if(m_pCurrentScreen)
-			m_pCurrentScreen->Render(MovieTexture);
+			m_pCurrentScreen->Render(&Scene,MovieTexture,&m_ShaderMng,eye,fovDegrees);
 
 		glBindTexture( GL_TEXTURE_EXTERNAL_OES, 0 );	// don't leave it bound
 	}

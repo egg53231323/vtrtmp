@@ -1,12 +1,21 @@
 #ifndef SHADERMANAGER_H
 #define SHADERMANAGER_H
 
+#include "GlProgram.h"
+
+namespace OVR
+{
+	class GlProgram;
+}
 enum SHADER_ID
 {
 	PanoramaProgram=0,
 	PanoramaProgramVRP,
 	PanoramaProgram3DV,
-	BlackProgram
+	BlackProgram,
+
+
+	SHADER_ID_COUNT
 };
 
 class ShaderManager
@@ -16,13 +25,10 @@ public:
 	~ShaderManager();
 	void InitShaders();
 	void CleanUpShaders();
-	GlProgram* GetShaderByID(SHADER_ID id);
+	OVR::GlProgram* GetShaderByID(SHADER_ID id);
 
-	GlProgram			PanoramaProgram;
-	GlProgram			PanoramaProgramVRP;
-	GlProgram			PanoramaProgram3DV;
-	GlProgram			FadedPanoramaProgram;
-	GlProgram			blackProgram;
+	OVR::GlProgram m_Program[SHADER_ID_COUNT];
+
 };
 
 

@@ -41,8 +41,6 @@ public:
 	void				SetUseSphereScreen(const SphereScreenConfig& cfg);
 	void				SetUseQuadScreen(const QuadScreenConfig& cfg);
 
-	void 				DrawMoviePanoramaMode( const int eye, const float fovDegrees );
-	void 				DrawMovieNoPanoramaMode( const int eye, const float fovDegrees );
 	// video vars
 	String				VideoName;
 	SurfaceTexture	* 	MovieTexture;
@@ -63,12 +61,10 @@ public:
 	OvrSceneView		Scene;
 
 	Array<String> 		SearchPaths;
-	SCREEN_GEOMETRY		m_ScreenMode;
-	MOVIE_MAPPING		m_TcMode;
 
 	MovieScreen*		m_pCurrentScreen;
-	MoiveScreenSphere*		m_pSphereScreen;
-	MoiveScreenQuad*		m_pQuadScreen;
+	MoiveScreenSphere*	m_pSphereScreen;
+	MoiveScreenQuad*	m_pQuadScreen;
 	ShaderManager		m_ShaderMng;
 private:
 	void UninstallShaderAndScreen();

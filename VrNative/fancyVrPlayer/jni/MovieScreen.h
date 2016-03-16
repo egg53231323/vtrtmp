@@ -50,14 +50,18 @@ struct QuadScreenConfig
 	float distance_to_eye;
 	MOVIE_MAPPING tc_mode;
 };
+namespace OVR{
+	class SurfaceTexture;
+	class OvrSceneView;
+}
+class ShaderManager;
 
-class SurfaceTexture;
 class MovieScreen
 {
 public :
 	MovieScreen(){}
 	virtual ~MovieScreen(){}
-	virtual void Render(OVR::SurfaceTexture* MovieTexture)=0;
+	virtual void Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)=0;
 };
 
 class MoiveScreenSphere:public MovieScreen
@@ -65,11 +69,12 @@ class MoiveScreenSphere:public MovieScreen
 public:
 	MoiveScreenSphere();
 	virtual ~MoiveScreenSphere();
-	virtual void Render(SurfaceTexture* MovieTexture);
+	virtual void Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees);
 
 	void SetConfig(const SphereScreenConfig& cfg);
 private:
-	GlGeometry	Globe;
+	OVR::GlGeometry	Globe;
+	SphereScreenConfig m_cfg;
 };
 
 class MoiveScreenQuad:public MovieScreen
@@ -77,9 +82,11 @@ class MoiveScreenQuad:public MovieScreen
 public:
 	MoiveScreenQuad();
 	virtual ~MoiveScreenQuad();
-	virtual void Render(SurfaceTexture* MovieTexture);
+	virtual void Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees);
 	void SetConfig(const QuadScreenConfig& cfg);
 private:
-	GlGeometry eye_quad;
+	OVR::GlGeometry eye_quad;
+	OVR::GlGeometry	Globe;
+	QuadScreenConfig m_cfg;
 };
 #endif /* MOVIESCREEN_H_ */
