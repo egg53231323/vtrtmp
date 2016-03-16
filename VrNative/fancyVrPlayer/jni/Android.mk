@@ -10,7 +10,7 @@ include ../../VRLib/cflags.mk
 LOCAL_ARM_MODE := arm
 
 LOCAL_MODULE    := ovrapp
-LOCAL_SRC_FILES := OvrApp.cpp
+LOCAL_SRC_FILES := MovieScreen.cpp #OvrApp.cpp MovieScreen.cpp ShaderManager.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

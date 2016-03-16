@@ -15,6 +15,8 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
 #include "App.h"
 #include "ModelView.h"
+#include "ShaderManager.h"
+#include "MovieScreen.h"
 
 class OvrApp : public OVR::VrAppInterface
 {
@@ -35,6 +37,12 @@ public:
 	void 				PauseVideo( bool const force );
 	void 				ResumeVideo();
 	void				StopVideo();
+
+	void				SetUseSphereScreen(const SphereScreenConfig& cfg);
+	void				SetUseQuadScreen(const QuadScreenConfig& cfg);
+
+	void 				DrawMoviePanoramaMode( const int eye, const float fovDegrees );
+	void 				DrawMovieNoPanoramaMode( const int eye, const float fovDegrees );
 	// video vars
 	String				VideoName;
 	SurfaceTexture	* 	MovieTexture;
@@ -49,22 +57,22 @@ public:
 
 	bool				FrameAvailable;
 
-	GlProgram			PanoramaProgram;
-	GlProgram			PanoramaProgramVRP;
-	GlProgram			PanoramaProgram3DV;
-	GlProgram			FadedPanoramaProgram;
-	GlProgram			blackProgram;
+
 	//0 为普通，1 为 VirtualRealPorn，2 为 3D360
 	int					VideoMode;
-	GlGeometry			Globe;
-	GlGeometry			eye_quad;
 	OvrSceneView		Scene;
 
 	Array<String> 		SearchPaths;
+	SCREEN_GEOMETRY		m_ScreenMode;
+	MOVIE_MAPPING		m_TcMode;
 
+	MovieScreen*		m_pCurrentScreen;
+	MoiveScreenSphere*		m_pSphereScreen;
+	MoiveScreenQuad*		m_pQuadScreen;
+	ShaderManager		m_ShaderMng;
 private:
-	void UninstallShader();
-	void InitShader();
+	void UninstallShaderAndScreen();
+	void InitShaderAndScreen();
 };
 
 #endif

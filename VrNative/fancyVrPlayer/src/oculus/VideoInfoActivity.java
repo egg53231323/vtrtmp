@@ -36,7 +36,8 @@ public class VideoInfoActivity extends Activity{
 				Intent intent=new Intent(VideoInfoActivity.this,movieViewActivity.class);
 				Bundle mp4_info=new Bundle();
 				mp4_info.putString("filename", mp4_fn); //文件名
-				mp4_info.putSerializable("playmode", VR_MOVIE_PLAY_MODE.NoPanorama_Stereo_Left_Right);//播放方式
+				mp4_info.putFloat("ratio", 0.75f); //宽高比
+				mp4_info.putInt("playmode", VR_MOVIE_PLAY_MODE.NoPanorama_Stereo_Left_Right);//播放方式
 				intent.putExtras(mp4_info);
 				startActivity(intent);
 			}

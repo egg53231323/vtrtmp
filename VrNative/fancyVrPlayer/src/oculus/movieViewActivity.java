@@ -32,7 +32,7 @@ AudioManager.OnAudioFocusChangeListener {
 	Surface movieSurface = null;
 	MediaPlayer mediaPlayer = null;	
 	AudioManager audioManager = null;
-	VR_MOVIE_PLAY_MODE playMode=VR_MOVIE_PLAY_MODE.NoPanorama_NoStereo;
+	int playMode=VR_MOVIE_PLAY_MODE.NoPanorama_NoStereo;
 	
     public static native long nativeSetAppInterface( VrActivity act, String fromPackageNameString, String commandString, String uriString );
 	public static native SurfaceTexture nativePrepareNewVideo(long appPtr );
@@ -61,7 +61,7 @@ AudioManager.OnAudioFocusChangeListener {
 		
 		Bundle bundle=getIntent().getExtras();
 		final String fn=bundle.getString("filename");
-		playMode=(VR_MOVIE_PLAY_MODE)bundle.getSerializable("playmode");
+		playMode=bundle.getInt("playmode");
 		//String videoDirPath= Environment.getExternalStorageDirectory().getPath()+"/oculus/360videos/";
 		//String fn=videoDirPath+"3d_tag2_2_60fps.mp4";
 
@@ -76,7 +76,7 @@ AudioManager.OnAudioFocusChangeListener {
 		startMovie( fn );//play movie
     }
 
-    void SetPlayMode(VR_MOVIE_PLAY_MODE e)
+    void SetPlayMode(int e)
     {
     	playMode=e;
     }
