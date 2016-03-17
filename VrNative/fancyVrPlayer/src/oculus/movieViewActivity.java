@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
@@ -152,8 +153,9 @@ AudioManager.OnAudioFocusChangeListener {
 	private void returnToMain()
 	{
 		//在这里编写返回的逻辑
-		//Intent intent=new Intent(firstActitity.this,MainActivity.class);
-		//startActivity(intent);
+		Intent intent=new Intent(movieViewActivity.this,VideoInfoActivity.class);
+		startActivity(intent);
+		//finish();
 	}
     
     

@@ -29,8 +29,6 @@ public class VideoInfoActivity extends Activity{
 		tv.setText("movie: "+mp4_fn);
 		
 		
-		
-		final RadioGroup groupTc = (RadioGroup)this.findViewById(R.id.radioGroup2);
 		//set up play button 
 		Button playBtn=(Button)findViewById(R.id.button_play);
 		playBtn.setOnClickListener(new View.OnClickListener() 
@@ -43,12 +41,14 @@ public class VideoInfoActivity extends Activity{
 				//启动观看影片的activity
 				Intent intent=new Intent(VideoInfoActivity.this,movieViewActivity.class);
 				Bundle mp4_info=new Bundle();
+
+				//mp4_info.putSerializable("class", this.getClass());
 				mp4_info.putString("filename", mp4_fn); //文件名
 				mp4_info.putFloat("ratio", 0.75f); //宽高比
 				mp4_info.putInt("screen", sel_screen_id);//screen方式
 				mp4_info.putInt("tc", sel_tc_id);//tc方式
 				intent.putExtras(mp4_info);
-				startActivity(intent);
+				startActivityForResult(intent,12345);
 			}
 		});
 	}
