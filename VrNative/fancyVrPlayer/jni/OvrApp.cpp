@@ -16,19 +16,21 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 #include "PathUtils.h"
 #include "Kernel\OVR_Log.h"
 
-
-#define  NoPanorama_NoStereo 0 				//非全景 非立体的影片，也就是最普通的影片
-#define  NoPanorama_Stereo_Left_Right 1 	//非全景的 左右格式的立体影片
-#define  NoPanorama_Stereo_Up_Down 2		//非全景的 上下格式的立体影片
-#define  Panorama_NoStereo 3				//全景 非立体的影片
-#define  Panorama_Stereo_Left_Right 4		//全景的 左右格式的立体影片
-#define  Panorama_Stereo_Up_Down 5			//全景的 上下格式的立体影片
+//
+//#define  NoPanorama_NoStereo 0 				//非全景 非立体的影片，也就是最普通的影片
+//#define  NoPanorama_Stereo_Left_Right 1 	//非全景的 左右格式的立体影片
+//#define  NoPanorama_Stereo_Up_Down 2		//非全景的 上下格式的立体影片
+//#define  Panorama_NoStereo 3				//全景 非立体的影片
+//#define  Panorama_Stereo_Left_Right 4		//全景的 左右格式的立体影片
+//#define  Panorama_Stereo_Up_Down 5			//全景的 上下格式的立体影片
 
 
 
 extern "C" {
 
 static jclass	GlobalActivityClass;
+static SphereScreenConfig cfg1;
+static QuadScreenConfig cfg2;
 jlong Java_oculus_movieViewActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
 		jstring fromPackageName, jstring commandString, jstring uriString )
 {
@@ -87,44 +89,21 @@ void Java_oculus_movieViewActivity_nativeVideoStartError( JNIEnv *jni, jclass cl
 	panoVids->app->GetMessageQueue().PostPrintf( "startError" );
 }
 
-void Java_oculus_movieViewActivity_nativeSetPlayConfig( JNIEnv *jni, jclass clazz, jlong interfacePtr , int Mode) {
+void Java_oculus_movieViewActivity_nativeSetScreenTcMode( JNIEnv *jni, jclass clazz, jlong interfacePtr, int screenmode ,int tcmode)
+{
 	SSSA_LOG_FUNCALL(1);
-	LOG( "nativeSetPlayConfig" );
-
 	OvrApp * panoVids = ( OvrApp * )( ( ( App * )interfacePtr )->GetAppInterface() );
-	SphereScreenConfig cfg1;
-	QuadScreenConfig cfg2;
-	if(Mode==NoPanorama_NoStereo)
-	{
-		cfg2.tc_mode=MM_WHOLE;
-		panoVids->SetUseQuadScreen(cfg2);
-	}
-	else if(Mode==NoPanorama_Stereo_Left_Right)
-	{
-		cfg2.tc_mode=MM_LEFT_RIGHT;
-		panoVids->SetUseQuadScreen(cfg2);
-	}
-	else if(Mode==NoPanorama_Stereo_Up_Down)
-	{
-		cfg2.tc_mode=MM_TOP_BOTTOM;
-		panoVids->SetUseQuadScreen(cfg2);
-	}
-	else if(Mode==Panorama_NoStereo)
-	{
-		cfg1.tc_mode=MM_WHOLE;
+
+	cfg1.tc_mode=(MOVIE_MAPPING)tcmode;
+	cfg2.tc_mode=(MOVIE_MAPPING)tcmode;
+
+	LOG( "screenmode=%d,tcmode=%d", screenmode,tcmode);
+	if(screenmode==SG_SPHERE)
 		panoVids->SetUseSphereScreen(cfg1);
-	}
-	else if(Mode==Panorama_Stereo_Left_Right)
-	{
-		cfg1.tc_mode=MM_LEFT_RIGHT;
-		panoVids->SetUseSphereScreen(cfg1);
-	}
-	else if(Mode==Panorama_Stereo_Up_Down)
-	{
-		cfg1.tc_mode=MM_TOP_BOTTOM;
-		panoVids->SetUseSphereScreen(cfg1);
-	}
+	else
+		panoVids->SetUseQuadScreen(cfg2);
 }
+
 
 } // extern "C"
 
@@ -138,6 +117,9 @@ OvrApp::OvrApp()
 	BackgroundHeight= 0 ;
 	VideoMode=3;
 
+	m_pQuadScreen=new MoiveScreenQuad();
+	m_pSphereScreen=new MoiveScreenSphere();
+	m_pCurrentScreen=(MovieScreen*)m_pSphereScreen;
 }
 
 OvrApp::~OvrApp()
@@ -154,25 +136,29 @@ void OvrApp::UninstallShaderAndScreen()
 	delete m_pSphereScreen;
 	m_pCurrentScreen=0;
 
-	m_ShaderMng.CleanUpShaders();
+	m_ShaderMng->CleanUpShaders();
+	delete m_ShaderMng;
 }
 
 void OvrApp::InitShaderAndScreen() {
 	SSSA_LOG_FUNCALL(1);
-	m_ShaderMng.InitShaders();
-	m_pQuadScreen=new MoiveScreenQuad();
-	m_pSphereScreen=new MoiveScreenSphere();
-	m_pCurrentScreen=(MovieScreen*)m_pQuadScreen;
+	m_ShaderMng=new ShaderManager();
+	m_ShaderMng->InitShaders();
+
+	m_pQuadScreen->Init();
+	m_pSphereScreen->Init();
 
 }
 
 void OvrApp::SetUseSphereScreen(const SphereScreenConfig& cfg)
 {
+	SSSA_LOG_FUNCALL(1);
 	m_pCurrentScreen=(MovieScreen*)m_pSphereScreen;
 	m_pSphereScreen->SetConfig(cfg);
 }
 void OvrApp::SetUseQuadScreen(const QuadScreenConfig& cfg)
 {
+	SSSA_LOG_FUNCALL(1);
 	m_pCurrentScreen=(MovieScreen*)m_pQuadScreen;
 	m_pQuadScreen->SetConfig(cfg);
 }
@@ -180,7 +166,7 @@ void OvrApp::SetUseQuadScreen(const QuadScreenConfig& cfg)
 void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSON, const char * launchIntentURI )
 {
 	// This is called by the VR thread, not the java UI thread.
-	LOG( "--------------- Oculus360Videos OneTimeInit ---------------" );
+	LOG( "--------------- OvrApp OneTimeInit ---------------" );
 
 	VideoMode = 0;
 	app->GetStoragePaths().PushBackSearchPathIfValid(EST_SECONDARY_EXTERNAL_STORAGE, EFT_ROOT, "RetailMedia/", SearchPaths);
@@ -350,7 +336,7 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 		glBindTexture( GL_TEXTURE_EXTERNAL_OES, MovieTexture->textureId );
 
 		if(m_pCurrentScreen)
-			m_pCurrentScreen->Render(&Scene,MovieTexture,&m_ShaderMng,eye,fovDegrees);
+			m_pCurrentScreen->Render(&Scene,MovieTexture,m_ShaderMng,eye,fovDegrees);
 
 		glBindTexture( GL_TEXTURE_EXTERNAL_OES, 0 );	// don't leave it bound
 	}

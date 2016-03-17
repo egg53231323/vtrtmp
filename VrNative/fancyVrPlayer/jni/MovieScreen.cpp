@@ -12,7 +12,7 @@
 #include "SurfaceTexture.h"
 #include "ModelView.h"
 #include "ShaderManager.h"
-
+#include "Kernel\OVR_Log.h"
 using namespace OVR;
 
 Matrix4f TexmForVideo( const int eye ,MOVIE_MAPPING mm_mode)
@@ -27,6 +27,14 @@ Matrix4f TexmForVideo( const int eye ,MOVIE_MAPPING mm_mode)
 			);
 	}
 
+	else if (mm_mode == MM_ONLY_LEFT) //left right 3d video
+		{
+			return Matrix4f(
+				0.5, 0, 0, 0.5,
+				0, 1, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1 );
+		}
 	else if (mm_mode == MM_LEFT_RIGHT) //left right 3d video
 	{
 		return eye ?  //左右交换一下
@@ -64,14 +72,19 @@ Matrix4f TexmForVideo( const int eye ,MOVIE_MAPPING mm_mode)
 
 MoiveScreenSphere::MoiveScreenSphere()
 {
-	Globe = OVR::BuildGlobe();
+
 }
 MoiveScreenSphere::~MoiveScreenSphere()
 {
 	Globe.Free();
 }
+void MoiveScreenSphere::Init()
+{
+	Globe = OVR::BuildGlobe();
+}
 void MoiveScreenSphere::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)
 {
+	SSSA_LOG_FUNCALL(1);
 	const Matrix4f view =
 			(m_cfg.tc_mode == MM_WHOLE) ?
 					Scene->ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : // Videos have center as initial focal point - need to rotate 90 degrees to start there
@@ -96,16 +109,21 @@ void MoiveScreenSphere::SetConfig(const SphereScreenConfig& cfg)
 }
 MoiveScreenQuad::MoiveScreenQuad()
 {
-	eye_quad = OVR::BuildTesselatedQuad(1,1);
-	Globe = OVR::BuildGlobe();
+
 }
 MoiveScreenQuad::~MoiveScreenQuad()
 {
 	eye_quad.Free();
 	Globe.Free();
 }
+void MoiveScreenQuad::Init()
+{
+	eye_quad = OVR::BuildTesselatedQuad(1,1);
+	Globe = OVR::BuildGlobe();
+}
 void MoiveScreenQuad::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)
 {
+	SSSA_LOG_FUNCALL(1);
 	const float eyeOffset = (eye ? -1 : 1) * 0.5f
 			* Scene->ViewParms.InterpupillaryDistance;
 	const Matrix4f view = Matrix4f::Translation(eyeOffset, 0.0f, 0.0f); //固定不动

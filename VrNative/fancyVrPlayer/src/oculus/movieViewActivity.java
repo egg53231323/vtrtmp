@@ -32,14 +32,16 @@ AudioManager.OnAudioFocusChangeListener {
 	Surface movieSurface = null;
 	MediaPlayer mediaPlayer = null;	
 	AudioManager audioManager = null;
-	int playMode=VR_MOVIE_PLAY_MODE.NoPanorama_NoStereo;
+	int screenMode=VR_MOVIE_PLAY_MODE.SCREEN_SPHERE;
+	int tcMode=VR_TC_MODE.MM_WHOLE;
 	
     public static native long nativeSetAppInterface( VrActivity act, String fromPackageNameString, String commandString, String uriString );
 	public static native SurfaceTexture nativePrepareNewVideo(long appPtr );
 	public static native void nativeFrameAvailable( long appPtr );
 	public static native void nativeVideoCompletion( long appPtr );
 	public static native void nativeSetVideoSize( long appPtr, int width, int height );
-
+	public static native void nativeSetScreenTcMode( long appPtr, int screenmode,int tcmode );
+	
 	static
 	{
 		 System.loadLibrary("ovrapp");
@@ -49,6 +51,7 @@ AudioManager.OnAudioFocusChangeListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.d(TAG,"Movie Wnd onCreate");
 		Intent intent = getIntent();
 
 		String commandString = VrLib.getCommandStringFromIntent( intent );
@@ -61,9 +64,14 @@ AudioManager.OnAudioFocusChangeListener {
 		
 		Bundle bundle=getIntent().getExtras();
 		final String fn=bundle.getString("filename");
-		playMode=bundle.getInt("playmode");
-		//String videoDirPath= Environment.getExternalStorageDirectory().getPath()+"/oculus/360videos/";
-		//String fn=videoDirPath+"3d_tag2_2_60fps.mp4";
+		screenMode=bundle.getInt("screen");
+		tcMode=bundle.getInt("tc");
+		Log.d(TAG,"Movie filename="+fn);
+		Log.d(TAG,"Movie screen="+screenMode);
+		Log.d(TAG,"Movie tc="+tcMode);
+		
+		nativeSetScreenTcMode(appPtr, screenMode,tcMode);
+
 
 		if(fn==null || fn.isEmpty())
 		{
@@ -72,15 +80,12 @@ AudioManager.OnAudioFocusChangeListener {
 		}
 		else
 			Toast.makeText(getApplicationContext(), "MovieÎÄ¼þÃû="+fn, 0).show();
-		
+		//String videoDirPath= Environment.getExternalStorageDirectory().getPath()+"/oculus/360videos/";
+		//String fn=videoDirPath+"3d_tag2_2_60fps.mp4";
 		startMovie( fn );//play movie
     }
 
-    void SetPlayMode(int e)
-    {
-    	playMode=e;
-    }
-    
+ 
 	void requestAudioFocus()
 	{
 		// Request audio focus

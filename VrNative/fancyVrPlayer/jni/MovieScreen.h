@@ -13,14 +13,14 @@
 //屏幕的几何体
 enum SCREEN_GEOMETRY
 {
-	SG_SPHERE, 	//球体 用于播放全景影片
+	SG_SPHERE=0, 	//球体 用于播放全景影片
 	SG_QUAD		//面片 用于播放非全景影片
 };
 
 //贴图映射的方式
 enum MOVIE_MAPPING
 {
-	MM_LEFT_RIGHT,	//左眼映射 影片的左半部分，右眼映射影片的右半部分
+	MM_LEFT_RIGHT=0,	//左眼映射 影片的左半部分，右眼映射影片的右半部分
 	MM_TOP_BOTTOM,	//左眼映射 影片的上半部分，右眼映射影片的下半部分
 	MM_ONLY_LEFT,	//左右眼都映射 影片的左半部分
 	MM_ONLY_TOP,	//左右眼都映射 影片的上半部分
@@ -60,6 +60,7 @@ class MovieScreen
 {
 public :
 	MovieScreen(){}
+	virtual void Init()=0;
 	virtual ~MovieScreen(){}
 	virtual void Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)=0;
 };
@@ -68,6 +69,7 @@ class MoiveScreenSphere:public MovieScreen
 {
 public:
 	MoiveScreenSphere();
+	virtual void Init();
 	virtual ~MoiveScreenSphere();
 	virtual void Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees);
 
@@ -81,6 +83,7 @@ class MoiveScreenQuad:public MovieScreen
 {
 public:
 	MoiveScreenQuad();
+	virtual void Init();
 	virtual ~MoiveScreenQuad();
 	virtual void Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees);
 	void SetConfig(const QuadScreenConfig& cfg);

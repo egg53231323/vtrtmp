@@ -65,7 +65,7 @@ public:
 	MovieScreen*		m_pCurrentScreen;
 	MoiveScreenSphere*	m_pSphereScreen;
 	MoiveScreenQuad*	m_pQuadScreen;
-	ShaderManager		m_ShaderMng;
+	ShaderManager*		m_ShaderMng;
 private:
 	void UninstallShaderAndScreen();
 	void InitShaderAndScreen();
