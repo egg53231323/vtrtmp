@@ -1,0 +1,2 @@
+set solib-search-path ../../out/inter_media/testUI/local/armeabi-v7a
+directory E:/android-ndk-r10/platforms/android-19/arch-arm/usr/include E:/android-ndk-r10/sources/cxx-stl/gnu-libstdc++ ../../VRLib ../../VRLib/jni/LibOVR/Include ../../VRLib/jni/LibOVR/Src ../../VRLib/jni/3rdParty/TinyXml ../../VRLib/jni/3rdParty/minizip E:/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/include E:/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include E:/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/include/backward
