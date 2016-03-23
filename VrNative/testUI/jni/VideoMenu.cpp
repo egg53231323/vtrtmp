@@ -45,7 +45,7 @@ class OvrVideoMenuRootComponent : public VRMenuComponent
 {
 public:
 	OvrVideoMenuRootComponent( OvrVideoMenu & videoMenu )
-		: VRMenuComponent( VRMenuEventFlags_t( VRMENU_EVENT_FRAME_UPDATE ) | VRMENU_EVENT_OPENING )
+		: VRMenuComponent( VRMenuEventFlags_t( VRMENU_EVENT_FRAME_UPDATE ) | VRMENU_EVENT_TOUCH_DOWN | VRMENU_EVENT_OPENING )
 		, VideoMenu( videoMenu )
 	{
 	}
@@ -63,22 +63,36 @@ private:
 		case VRMENU_EVENT_TOUCH_DOWN:
 		{
 				Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
-
-				//VRMenuObject * object = GetMenuObject();
-				//OVR_ASSERT( object );
-
-				Posef const &  localPose = self->GetLocalPose();
-
-				// move hit position into local space
-				//const Posef modelPose = Background->GetWorldPose();
-				Vector3f localHit = localPose.Orientation.Inverted().Rotate( hitPos - localPose.Position );
-
-				Bounds3f bounds = self->GetLocalBounds( app->GetDefaultFont() ) * localPose;
-				float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
-				if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
+				if ( self->GetParentHandle().IsValid() )
 				{
-					app->ShowInfoText( 1.0f, "click at %f",progress );
+					VRMenuObject * parentObj = menuMgr.ToObject( self->GetParentHandle() );
+					const Posef parentPose = parentObj->GetLocalPose();
+					Vector3f localHit = parentPose.Orientation.Inverted().Rotate( hitPos - parentPose.Position );
+					Bounds3f bounds = self->GetLocalBounds( app->GetDefaultFont() ) * self->GetLocalScale();
+					float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
+
+					app->ShowInfoText( 1.0f, "hitPos=%f\n,localHit=%f\nparent scale=%f\nprogress=%f",
+							hitPos.x,
+							localHit.x,
+							parentObj->GetLocalScale().x,
+							progress);
 				}
+
+
+/*
+ * 	Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
+
+	// move hit position into local space
+	const Posef modelPose = Background->GetWorldPose();
+	Vector3f localHit = modelPose.Orientation.Inverted().Rotate( hitPos - modelPose.Position );
+
+	Bounds3f bounds = Background->GetMenuObject()->GetLocalBounds( app->GetDefaultFont() ) * Background->GetParent()->GetWorldScale();
+	const float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
+	if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
+	{
+		( *OnClickFunction )( this, OnClickObject, progress );
+	}
+ * */
 			return MSG_STATUS_ALIVE;
 		}
 		default:
@@ -156,6 +170,8 @@ OvrVideoMenu::OvrVideoMenu( App * app, OvrApp * videos, OvrVRMenuMgr & menuMgr, 
 	Vector3f dir( -FWD );
 	Posef panelPose( rot, dir * Radius );
 
+	//const Posef panelPose( Quatf( Vector3f( 0.0f, 1.0f, 0.0f ), 0.0f ), Vector3f( 0.0f, 0.0f, 0.0f ) );
+
 	const VRMenuFontParms fontParms( true, true, false, false, true, 0.525f, 0.45f, 1.0f );
 
 	//Posef videoButtonPose( Quatf(), DOWN * ICON_HEIGHT * 2.0f );
@@ -169,7 +185,7 @@ OvrVideoMenu::OvrVideoMenu( App * app, OvrApp * videos, OvrVRMenuMgr & menuMgr, 
 			surfParms,
 			"",
 			panelPose, //pos
-			Vector3f( 3.0f,1.0f,1.0f ), //scale
+			Vector3f( 1.0f,1.0f,1.0f ), //scale
 			Posef(), //text local pos
 			Vector3f( 1.0f ),  //text local scale
 			fontParms,

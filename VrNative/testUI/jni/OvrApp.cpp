@@ -108,7 +108,7 @@ Matrix4f OvrApp::Frame(const VrFrame vrFrame)
 
     //alwarys display the menu
     app->GetGuiSys().OpenMenu( app, app->GetGazeCursor(), OvrVideoMenu::MENU_NAME );
-    if ( vrFrame.Input.buttonReleased & BUTTON_TOUCH )
+    if ( vrFrame.Input.buttonReleased & BUTTON_TOUCH_DOUBLE )
     {
     	VideoMenu->RepositionMenu( app );
     }
