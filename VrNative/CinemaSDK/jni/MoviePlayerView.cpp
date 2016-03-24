@@ -3,7 +3,7 @@
 Filename    :   MoviePlayerView.cpp
 Content     :
 Created     :	6/17/2014
-Authors     :   Jim Dosé
+Authors     :   Jim Dosï¿½
 
 Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
@@ -498,8 +498,13 @@ void MoviePlayerView::ShowUI()
 	PlaybackControlsMenu->Open();
 	GazeTimer.SetGazeTime();
 
-	PlaybackControlsScale.SetLocalScale( Vector3f( Cinema.SceneMgr.GetScreenSize().y * ( 500.0f / 1080.0f ) ) );
-	PlaybackControlsPosition.SetLocalPose( Cinema.SceneMgr.GetScreenPose() );
+	Vector3f scl=Vector3f( Cinema.SceneMgr.GetScreenSize().y * ( 500.0f / 1080.0f ) ) ;
+	Posef po=Cinema.SceneMgr.GetScreenPose() ;
+	LOG("MoviePlayerView::ShowUI,Scl=%f,%f,%f",scl.x,scl.y,scl.z);
+	LOG("MoviePlayerView::ShowUI,Pos=%f,%f,%f",po.Position.x,po.Position.y,po.Position.z);
+	LOG("MoviePlayerView::ShowUI,Rot=%f,%f,%f,%f",po.Orientation.x,po.Orientation.y,po.Orientation.z,po.Orientation.w);
+	PlaybackControlsScale.SetLocalScale( scl );
+	PlaybackControlsPosition.SetLocalPose( po );
 
 	uiActive = true;
 }

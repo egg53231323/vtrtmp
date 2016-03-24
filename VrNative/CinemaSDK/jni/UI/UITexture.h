@@ -18,6 +18,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 #include "Android/GLUtils.h"
 
+namespace OculusCinema {
 
 class UITexture
 {
@@ -32,5 +33,6 @@ public:
 	GLuint 								Texture;
 };
 
+} // namespace OculusCinema
 
 #endif // UITexture_h

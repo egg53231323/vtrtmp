@@ -34,6 +34,10 @@ class OvrVideoMenuRootComponent;
 class OvrMetaData;
 struct OvrMetaDatum;
 
+float PixelScale( const float x );
+Vector3f PixelPos( const float x, const float y, const float z );
+
+
 class ControlsGazeTimer : public VRMenuComponent
 {
 public:

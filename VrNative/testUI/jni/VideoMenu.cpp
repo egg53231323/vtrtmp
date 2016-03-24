@@ -1,7 +1,9 @@
 #include "videoMenu.h"
 #include "VRMenu/VRMenuMgr.h"
 #include "Kernel/OVR_String_Utils.h"
-
+#include "vrapi/VrApi.h"
+#include "input.h"
+#include "app.h"
 namespace OVR
 {
 ControlsGazeTimer::ControlsGazeTimer() :
@@ -88,6 +90,15 @@ void ScrubBarComponent::SetWidgets( UIWidget *background, UIWidget *scrubBar, UI
 
 	SeekTime->SetVisible( false );
 }
+float PixelScale( const float x )
+{
+	return x * VRMenuObject::DEFAULT_TEXEL_SCALE;
+}
+
+Vector3f PixelPos( const float x, const float y, const float z )
+{
+	return Vector3f( PixelScale( x ), PixelScale( y ), PixelScale( z ) );
+}
 
 void ScrubBarComponent::SetProgress( const float progress )
 {
@@ -158,50 +169,16 @@ eMsgStatus ScrubBarComponent::OnEvent_Impl( App * app, VrFrame const & vrFrame, 
 eMsgStatus ScrubBarComponent::OnFrame( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
         VRMenuObject * self, VRMenuEvent const & event )
 {
-	if ( TouchDown )
-	{
-		if ( ( vrFrame.Input.buttonState & ( BUTTON_A | BUTTON_TOUCH ) ) != 0 )
-		{
-			OnClick( app, vrFrame, event );
-		}
-		else
-		{
-			TouchDown = false;
-		}
-	}
-
-	SeekTime->SetVisible( HasFocus );
-	if ( HasFocus )
-	{
-		Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
-
-		// move hit position into local space
-		const Posef modelPose = Background->GetWorldPose();
-		Vector3f localHit = modelPose.Orientation.Inverted().Rotate( hitPos - modelPose.Position );
-
-		Bounds3f bounds = Background->GetMenuObject()->GetLocalBounds( app->GetDefaultFont() ) * Background->GetParent()->GetWorldScale();
-		const float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
-
-		if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
-		{
-			const float seekwidth = ScrubBarWidth * progress;
-			Vector3f pos = SeekTime->GetLocalPosition();
-			pos.x = PixelScale( ScrubBarWidth * -0.5f + seekwidth );
-			SeekTime->SetLocalPosition( pos );
-
-			SetTimeText( SeekTime, Duration * progress );
-		}
-	}
+	if ( ( vrFrame.Input.buttonState & ( BUTTON_A | BUTTON_TOUCH ) ) != 0 )
+			{
+				OnClick( app, vrFrame, event );
+			}
 
 	return MSG_STATUS_ALIVE;
 }
 
 void ScrubBarComponent::OnClick( App * app, VrFrame const & vrFrame, VRMenuEvent const & event )
 {
-	if ( OnClickFunction == NULL )
-	{
-		return;
-	}
 
 	Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
 
@@ -211,9 +188,11 @@ void ScrubBarComponent::OnClick( App * app, VrFrame const & vrFrame, VRMenuEvent
 
 	Bounds3f bounds = Background->GetMenuObject()->GetLocalBounds( app->GetDefaultFont() ) * Background->GetParent()->GetWorldScale();
 	const float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
-	if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
-	{
-		( *OnClickFunction )( this, OnClickObject, progress );
-	}
+	app->ShowInfoText(1.f,"progress=%f",progress);
+
+//	if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
+//	{
+//		( *OnClickFunction )( this, OnClickObject, progress );
+//	}
 }
 }

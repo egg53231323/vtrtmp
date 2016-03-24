@@ -22,6 +22,7 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 #include "UI/UILabel.h"
 #include "UI/UIImage.h"
 #include "UI/UIButton.h"
+#include "VideoMenu.h"
 namespace OVR
 {
 	class OvrVideoMenu;
@@ -45,6 +46,7 @@ public:
 
 	void ShowUI();
 	void HideUI();
+	gazeCursorUserId_t		GazeUserId;	// id unique to this swipe view for interacting with gaze cursor
 	UITexture				BackgroundTintTexture;
 
 	UITexture				RWTexture;
@@ -85,30 +87,30 @@ public:
 	UITexture				SeekRW32x;
 
 	UIMenu *				MoveScreenMenu;
-	UILabel 				MoveScreenLabel;
-	Lerp					MoveScreenAlpha;
+	UILabel* 				MoveScreenLabel;
+	//Lerp					MoveScreenAlpha;
 
 	UIMenu *				PlaybackControlsMenu;
-	UIContainer 			PlaybackControlsPosition;
-	UIContainer 			PlaybackControlsScale;
-	UILabel 				MovieTitleLabel;
+	UIContainer* 			PlaybackControlsPosition;
+	UIContainer* 			PlaybackControlsScale;
+	UILabel* 				MovieTitleLabel;
 
-	UIImage					SeekIcon;
+	UIImage*					SeekIcon;
 
-	UIImage					ControlsBackground;
+	UIImage*					ControlsBackground;
 	ControlsGazeTimer		GazeTimer;
 
-	UIButton				RewindButton;
-	UIButton				PlayButton;
-	UIButton				FastForwardButton;
-	UIButton				CarouselButton;
+	UIButton*				RewindButton;
+	UIButton*				PlayButton;
+	UIButton*				FastForwardButton;
+	UIButton*				CarouselButton;
 
-	UIImage					SeekbarBackground;
-	UIImage					SeekbarProgress;
+	UIImage*				SeekbarBackground;
+	UIImage	*				SeekbarProgress;
 	ScrubBarComponent 		ScrubBar;
 
-	UILabel 				CurrentTime;
-	UILabel 				SeekTime;
+	UILabel* 				CurrentTime;
+	UILabel* 				SeekTime;
 };
 
 #endif

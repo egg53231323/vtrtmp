@@ -16,7 +16,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 #include "UI/UIWidget.h"
 #include "UI/UIMenu.h"
 #include "VRMenu/VRMenuMgr.h"
-#include "app.h"
+#include "VRMenu/VRMenuObject.h"
+#include "App.h"
 
 
 UIWidget::UIWidget( App &cinema ) :
@@ -461,7 +462,7 @@ void UIWidget::SetSurfaceBorder( int const surfaceIndex, Vector4f const & border
 {
 	VRMenuObject * object = GetMenuObject();
 	assert( object );
-	return object->SetSurfaceBorder( surfaceIndex, border );
+	object->SetSurfaceBorder( surfaceIndex, border );
 }
 
 bool UIWidget::GetSurfaceVisible( int const surfaceIndex ) const
