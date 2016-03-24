@@ -3,7 +3,7 @@
 Filename    :   UITexture.h
 Content     :
 Created     :	1/8/2015
-Authors     :   Jim Dosé
+Authors     :   Jim Dosï¿½
 
 Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
@@ -18,7 +18,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 #include "Android/GLUtils.h"
 
-namespace OculusCinema {
 
 class UITexture
 {
@@ -33,6 +32,5 @@ public:
 	GLuint 								Texture;
 };
 
-} // namespace OculusCinema
 
 #endif // UITexture_h

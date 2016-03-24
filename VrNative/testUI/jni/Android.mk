@@ -10,7 +10,15 @@ include ../../VRLib/cflags.mk
 LOCAL_ARM_MODE := arm
 
 LOCAL_MODULE    := ovrapp
-LOCAL_SRC_FILES := OvrApp.cpp VideoMenu.cpp
+LOCAL_SRC_FILES := OvrApp.cpp \
+					VideoMenu.cpp \
+					UI/UITexture.cpp \
+					UI/UIMenu.cpp \
+					UI/UIWidget.cpp \
+					UI/UIContainer.cpp \
+					UI/UILabel.cpp \
+					UI/UIImage.cpp \
+					UI/UIButton.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

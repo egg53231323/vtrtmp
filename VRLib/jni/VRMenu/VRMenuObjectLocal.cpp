@@ -1022,7 +1022,8 @@ void VRMenuObjectLocal::RenderSurface( OvrVRMenuMgr const & menuMgr, Matrix4f co
 
 //==============================
 // VRMenuObjectLocal::GetLocalBounds
-Bounds3f VRMenuObjectLocal::GetLocalBounds( BitmapFont const & font ) const { 
+Bounds3f VRMenuObjectLocal::GetLocalBounds( BitmapFont const & font ) const {
+
 	Bounds3f bounds;
 	bounds.Clear();
     Vector3f const localScale = GetLocalScale();

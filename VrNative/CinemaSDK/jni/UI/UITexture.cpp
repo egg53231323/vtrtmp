@@ -3,7 +3,7 @@
 Filename    :   UITexture.cpp
 Content     :
 Created     :	1/8/2015
-Authors     :   Jim Dosé
+Authors     :   Jim Dosï¿½
 
 Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
@@ -17,7 +17,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 #include "CinemaApp.h"
 #include "PackageFiles.h"
 
-namespace OculusCinema {
+using namespace OVR;
 
 UITexture::UITexture() :
 	Width( 0 ),
@@ -36,4 +36,3 @@ void UITexture::LoadTextureFromApplicationPackage( const char *assetPath )
 	Texture = OVR::LoadTextureFromApplicationPackage( assetPath, TextureFlags_t( TEXTUREFLAG_NO_DEFAULT ), Width, Height );
 }
 
-} // namespace OculusCinema

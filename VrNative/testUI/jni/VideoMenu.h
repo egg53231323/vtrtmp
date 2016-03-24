@@ -17,6 +17,13 @@ of patent rights can be found in the PATENTS file in the same directory.
 #define OVR_VideoMenu_h
 
 #include "VRMenu/VRMenu.h"
+#include "UI/UITexture.h"
+#include "UI/UIMenu.h"
+#include "UI/UIContainer.h"
+#include "UI/UILabel.h"
+#include "UI/UIImage.h"
+#include "UI/UIButton.h"
+
 class OvrApp;
 namespace OVR {
 
@@ -27,55 +34,71 @@ class OvrVideoMenuRootComponent;
 class OvrMetaData;
 struct OvrMetaDatum;
 
-//==============================================================
-// OvrPanoMenu
-class OvrVideoMenu : public VRMenu
+class ControlsGazeTimer : public VRMenuComponent
 {
 public:
-	static char const *	MENU_NAME;
-	static const VRMenuId_t ID_CENTER_ROOT;
-	static const VRMenuId_t	ID_BROWSER_BUTTON;
-	static const VRMenuId_t	ID_VIDEO_BUTTON;
+	static const int 		TYPE_ID = 152413;
 
-	// only one of these every needs to be created
-	static  OvrVideoMenu *		Create(
-		App * app,
-		OvrApp * videos,
-		OvrVRMenuMgr & menuMgr,
-		BitmapFont const & font,
-		float fadeOutTime,
-		float radius );
+							ControlsGazeTimer();
 
-	OvrApp *		GetVideos( ) 					{ return Videos; }
-	//OvrMetaData & 			GetMetaData() 					{ return MetaData; }
+	virtual int				GetTypeId() const { return TYPE_ID; }
+
+	void					SetGazeTime();
+	double					GetLastGazeTime() const { return LastGazeTime; }
+
+	bool					IsFocused() const { return HasFocus; }
 
 private:
-	OvrVideoMenu( App * app, OvrApp * videos, OvrVRMenuMgr & menuMgr, BitmapFont const & font,
-		float fadeOutTime, float radius );
+	double					LastGazeTime;
+	bool					HasFocus;
 
-	virtual ~OvrVideoMenu( );
-	virtual void			Open_Impl( App * app, OvrGazeCursor & gazeCursor );
-	virtual void			OnItemEvent_Impl( App * app, VRMenuId_t const itemId, VRMenuEvent const & event );
-	virtual void			Frame_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr, BitmapFont const & font,
-		BitmapFontSurface & fontSurface, gazeCursorUserId_t const gazeUserId );
+private:
+    virtual eMsgStatus      OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+                                    VRMenuObject * self, VRMenuEvent const & event );
+};
 
-	// Globals
-	App *					AppPtr;
-	OvrVRMenuMgr &			MenuMgr;
-	const BitmapFont &		Font;
-	OvrApp *		Videos;
+class ScrubBarComponent : public VRMenuComponent
+{
+public:
+	static const int 		TYPE_ID = 152414;
 
-	menuHandle_t			LoadingIconHandle;
-	menuHandle_t			AttributionHandle;
-	menuHandle_t			BrowserButtonHandle;
-	menuHandle_t			VideoControlButtonHandle;
+							ScrubBarComponent();
 
-	const float				Radius;
+	virtual int				GetTypeId() const { return TYPE_ID; }
 
-	float					ButtonCoolDown;
+	void					SetDuration( const int duration );
+	void					SetOnClick( void ( *callback )( ScrubBarComponent *, void *, float ), void *object );
+	void					SetWidgets( UIWidget *background, UIWidget *scrubBar, UILabel *currentTime, UILabel *seekTime, const int scrubBarWidth );
+	void 					SetProgress( const float progress );
 
-	double					OpenTime;
+	bool					IsScrubbing() const { return TouchDown; }
 
+private:
+	bool					HasFocus;
+	bool					TouchDown;
+
+	float					Progress;
+	int						Duration;
+
+	UIWidget *				Background;
+	UIWidget *				ScrubBar;
+	UILabel *				CurrentTime;
+	UILabel *				SeekTime;
+	int 					ScrubBarWidth;
+
+	void 					( *OnClickFunction )( ScrubBarComponent *button, void *object, float progress );
+	void *					OnClickObject;
+
+private:
+    virtual eMsgStatus      OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+                                    VRMenuObject * self, VRMenuEvent const & event );
+
+    eMsgStatus 				OnFrame( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+            VRMenuObject * self, VRMenuEvent const & event );
+
+    void 					OnClick( App * app, VrFrame const & vrFrame, VRMenuEvent const & event );
+
+    void 					SetTimeText( UILabel *label, const int time );
 };
 
 }

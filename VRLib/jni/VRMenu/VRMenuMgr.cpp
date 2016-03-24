@@ -305,9 +305,9 @@ private:
 	static bool			ShowPoses;
 };
 
-bool VRMenuMgrLocal::ShowDebugBounds = false;
-bool VRMenuMgrLocal::ShowDebugHierarchy = false;
-bool VRMenuMgrLocal::ShowPoses = false;
+bool VRMenuMgrLocal::ShowDebugBounds = true;
+bool VRMenuMgrLocal::ShowDebugHierarchy = true;
+bool VRMenuMgrLocal::ShowPoses = true;
 
 void DebugMenuBounds( void * appPtr, const char * cmd )
 {

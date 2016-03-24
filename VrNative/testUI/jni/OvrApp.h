@@ -15,7 +15,13 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
 #include "App.h"
 #include "ModelView.h"
-
+#include "VRMenu/GuiSys.h"
+#include "UI/UITexture.h"
+#include "UI/UIMenu.h"
+#include "UI/UIContainer.h"
+#include "UI/UILabel.h"
+#include "UI/UIImage.h"
+#include "UI/UIButton.h"
 namespace OVR
 {
 	class OvrVideoMenu;
@@ -34,10 +40,75 @@ public:
 	virtual Matrix4f 	Frame( VrFrame vrFrame );
 	virtual void		Command( const char * msg );
 
+	void CreateMenu( App * app, OvrVRMenuMgr & menuMgr, BitmapFont const & font );
 	OvrSceneView		Scene;
 
+	void ShowUI();
+	void HideUI();
+	UITexture				BackgroundTintTexture;
 
-	OVR::OvrVideoMenu *		VideoMenu;
+	UITexture				RWTexture;
+	UITexture				RWHoverTexture;
+	UITexture				RWPressedTexture;
+
+	UITexture				FFTexture;
+	UITexture				FFHoverTexture;
+	UITexture				FFPressedTexture;
+
+	UITexture				PlayTexture;
+	UITexture				PlayHoverTexture;
+	UITexture				PlayPressedTexture;
+
+	UITexture				PauseTexture;
+	UITexture				PauseHoverTexture;
+	UITexture				PausePressedTexture;
+
+	UITexture				CarouselTexture;
+	UITexture				CarouselHoverTexture;
+	UITexture				CarouselPressedTexture;
+
+	UITexture				SeekbarBackgroundTexture;
+	UITexture				SeekbarProgressTexture;
+
+	UITexture				SeekPosition;
+
+	UITexture				SeekFF2x;
+	UITexture				SeekFF4x;
+	UITexture				SeekFF8x;
+	UITexture				SeekFF16x;
+	UITexture				SeekFF32x;
+
+	UITexture				SeekRW2x;
+	UITexture				SeekRW4x;
+	UITexture				SeekRW8x;
+	UITexture				SeekRW16x;
+	UITexture				SeekRW32x;
+
+	UIMenu *				MoveScreenMenu;
+	UILabel 				MoveScreenLabel;
+	Lerp					MoveScreenAlpha;
+
+	UIMenu *				PlaybackControlsMenu;
+	UIContainer 			PlaybackControlsPosition;
+	UIContainer 			PlaybackControlsScale;
+	UILabel 				MovieTitleLabel;
+
+	UIImage					SeekIcon;
+
+	UIImage					ControlsBackground;
+	ControlsGazeTimer		GazeTimer;
+
+	UIButton				RewindButton;
+	UIButton				PlayButton;
+	UIButton				FastForwardButton;
+	UIButton				CarouselButton;
+
+	UIImage					SeekbarBackground;
+	UIImage					SeekbarProgress;
+	ScrubBarComponent 		ScrubBar;
+
+	UILabel 				CurrentTime;
+	UILabel 				SeekTime;
 };
 
 #endif

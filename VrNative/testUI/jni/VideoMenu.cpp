@@ -1,86 +1,209 @@
-/************************************************************************************
-
-Filename    :   VideoMenu.cpp
-Content     :
-Created     :
-Authors     :
-
-Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the Oculus360Videos/ directory. An additional grant 
-of patent rights can be found in the PATENTS file in the same directory.
-
-*************************************************************************************/
-
-#include "VideoMenu.h"
-
+#include "videoMenu.h"
 #include "VRMenu/VRMenuMgr.h"
-#include "VRMenu/GuiSys.h"
-#include "VRMenu/DefaultComponent.h"
-#include "VRMenu/ActionComponents.h"
-#include "VRMenu/FolderBrowser.h"
+#include "Kernel/OVR_String_Utils.h"
 
-#include "OvrApp.h"
-
-namespace OVR {
-
-const VRMenuId_t OvrVideoMenu::ID_CENTER_ROOT( 1000 );
-const VRMenuId_t OvrVideoMenu::ID_BROWSER_BUTTON( 1000 + 1011 );
-const VRMenuId_t OvrVideoMenu::ID_VIDEO_BUTTON( 1000 + 1012 );
-
-char const * OvrVideoMenu::MENU_NAME = "VideoMenu";
-
-static const Vector3f FWD( 0.0f, 0.0f, 1.0f );
-static const Vector3f RIGHT( 1.0f, 0.0f, 0.0f );
-static const Vector3f UP( 0.0f, 1.0f, 0.0f );
-static const Vector3f DOWN( 0.0f, -1.0f, 0.0f );
-
-static const int BUTTON_COOL_DOWN_SECONDS = 0.25f;
-
-//==============================
-// OvrVideoMenuRootComponent
-// This component is attached to the root of VideoMenu 
-class OvrVideoMenuRootComponent : public VRMenuComponent
+namespace OVR
 {
-public:
-	OvrVideoMenuRootComponent( OvrVideoMenu & videoMenu )
-		: VRMenuComponent( VRMenuEventFlags_t( VRMENU_EVENT_FRAME_UPDATE ) | VRMENU_EVENT_TOUCH_DOWN | VRMENU_EVENT_OPENING )
-		, VideoMenu( videoMenu )
+ControlsGazeTimer::ControlsGazeTimer() :
+	VRMenuComponent( VRMenuEventFlags_t( VRMENU_EVENT_FRAME_UPDATE ) |
+			VRMENU_EVENT_FOCUS_GAINED |
+            VRMENU_EVENT_FOCUS_LOST ),
+    LastGazeTime( 0 ),
+    HasFocus( false )
+
+{
+}
+
+void ControlsGazeTimer::SetGazeTime()
+{
+	LastGazeTime = ovr_GetTimeInSeconds();
+}
+
+eMsgStatus ControlsGazeTimer::OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+        VRMenuObject * self, VRMenuEvent const & event )
+{
+    switch( event.EventType )
+    {
+    	case VRMENU_EVENT_FRAME_UPDATE:
+    		if ( HasFocus )
+    		{
+    			LastGazeTime = ovr_GetTimeInSeconds();
+    		}
+    		return MSG_STATUS_ALIVE;
+        case VRMENU_EVENT_FOCUS_GAINED:
+        	HasFocus = true;
+        	LastGazeTime = ovr_GetTimeInSeconds();
+    		return MSG_STATUS_ALIVE;
+        case VRMENU_EVENT_FOCUS_LOST:
+        	HasFocus = false;
+    		return MSG_STATUS_ALIVE;
+        default:
+            OVR_ASSERT( !"Event flags mismatch!" );
+            return MSG_STATUS_ALIVE;
+    }
+}
+
+/*************************************************************************************/
+
+ScrubBarComponent::ScrubBarComponent() :
+	VRMenuComponent( VRMenuEventFlags_t( VRMENU_EVENT_TOUCH_DOWN ) |
+		VRMENU_EVENT_TOUCH_DOWN |
+		VRMENU_EVENT_FRAME_UPDATE |
+		VRMENU_EVENT_FOCUS_GAINED |
+        VRMENU_EVENT_FOCUS_LOST ),
+	HasFocus( false ),
+	TouchDown( false ),
+	Progress( 0.0f ),
+	Duration( 0 ),
+	Background( NULL ),
+	ScrubBar( NULL ),
+	CurrentTime( NULL ),
+	SeekTime( NULL ),
+	OnClickFunction( NULL ),
+	OnClickObject( NULL )
+
+{
+}
+
+void ScrubBarComponent::SetDuration( const int duration )
+{
+	Duration = duration;
+
+	SetProgress( Progress );
+}
+
+void ScrubBarComponent::SetOnClick( void ( *callback )( ScrubBarComponent *, void *, float ), void *object )
+{
+	OnClickFunction = callback;
+	OnClickObject = object;
+}
+
+void ScrubBarComponent::SetWidgets( UIWidget *background, UIWidget *scrubBar, UILabel *currentTime, UILabel *seekTime, const int scrubBarWidth )
+{
+	Background 		= background;
+	ScrubBar 		= scrubBar;
+	CurrentTime 	= currentTime;
+	SeekTime 		= seekTime;
+	ScrubBarWidth	= scrubBarWidth;
+
+	SeekTime->SetVisible( false );
+}
+
+void ScrubBarComponent::SetProgress( const float progress )
+{
+	Progress = progress;
+	const float seekwidth = ScrubBarWidth * progress;
+
+	Vector3f pos = ScrubBar->GetLocalPosition();
+	pos.x = PixelScale( ( ScrubBarWidth - seekwidth ) * -0.5f );
+	ScrubBar->SetLocalPosition( pos );
+	ScrubBar->SetSurfaceDims( 0, Vector2f( seekwidth, 40.0f ) );
+	ScrubBar->RegenerateSurfaceGeometry( 0, false );
+
+	pos = CurrentTime->GetLocalPosition();
+	pos.x = PixelScale( ScrubBarWidth * -0.5f + seekwidth );
+	CurrentTime->SetLocalPosition( pos );
+	SetTimeText( CurrentTime, Duration * progress );
+}
+
+void ScrubBarComponent::SetTimeText( UILabel *label, const int time )
+{
+	int seconds = time / 1000;
+	int minutes = seconds / 60;
+	int hours = minutes / 60;
+	seconds = seconds % 60;
+	minutes = minutes % 60;
+
+	if ( hours > 0 )
 	{
+		label->SetText( StringUtils::Va( "%d:%02d:%02d", hours, minutes, seconds ) );
+	}
+	else if ( minutes > 0 )
+	{
+		label->SetText( StringUtils::Va( "%d:%02d", minutes, seconds ) );
+	}
+	else
+	{
+		label->SetText( StringUtils::Va( "0:%02d", seconds ) );
+	}
+}
+
+eMsgStatus ScrubBarComponent::OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+        VRMenuObject * self, VRMenuEvent const & event )
+{
+    switch( event.EventType )
+    {
+		case VRMENU_EVENT_FOCUS_GAINED:
+			HasFocus = true;
+			return MSG_STATUS_ALIVE;
+
+		case VRMENU_EVENT_FOCUS_LOST:
+			HasFocus = false;
+			return MSG_STATUS_ALIVE;
+
+    	case VRMENU_EVENT_TOUCH_DOWN:
+    		TouchDown = true;
+    		OnClick( app, vrFrame, event );
+    		return MSG_STATUS_ALIVE;
+
+    	case VRMENU_EVENT_FRAME_UPDATE:
+    		return OnFrame( app, vrFrame, menuMgr, self, event );
+
+        default:
+            OVR_ASSERT( !"Event flags mismatch!" );
+            return MSG_STATUS_ALIVE;
+    }
+}
+
+eMsgStatus ScrubBarComponent::OnFrame( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+        VRMenuObject * self, VRMenuEvent const & event )
+{
+	if ( TouchDown )
+	{
+		if ( ( vrFrame.Input.buttonState & ( BUTTON_A | BUTTON_TOUCH ) ) != 0 )
+		{
+			OnClick( app, vrFrame, event );
+		}
+		else
+		{
+			TouchDown = false;
+		}
 	}
 
-private:
-	virtual eMsgStatus	OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
-		VRMenuObject * self, VRMenuEvent const & event )
+	SeekTime->SetVisible( HasFocus );
+	if ( HasFocus )
 	{
-		switch ( event.EventType )
+		Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
+
+		// move hit position into local space
+		const Posef modelPose = Background->GetWorldPose();
+		Vector3f localHit = modelPose.Orientation.Inverted().Rotate( hitPos - modelPose.Position );
+
+		Bounds3f bounds = Background->GetMenuObject()->GetLocalBounds( app->GetDefaultFont() ) * Background->GetParent()->GetWorldScale();
+		const float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
+
+		if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
 		{
-		case VRMENU_EVENT_FRAME_UPDATE:
-			return OnFrame( app, vrFrame, menuMgr, self, event );
-		case VRMENU_EVENT_OPENING:
-			return OnOpening( app, vrFrame, menuMgr, self, event );
-		case VRMENU_EVENT_TOUCH_DOWN:
-		{
-				Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
-				if ( self->GetParentHandle().IsValid() )
-				{
-					VRMenuObject * parentObj = menuMgr.ToObject( self->GetParentHandle() );
-					const Posef parentPose = parentObj->GetLocalPose();
-					Vector3f localHit = parentPose.Orientation.Inverted().Rotate( hitPos - parentPose.Position );
-					Bounds3f bounds = self->GetLocalBounds( app->GetDefaultFont() ) * self->GetLocalScale();
-					float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
+			const float seekwidth = ScrubBarWidth * progress;
+			Vector3f pos = SeekTime->GetLocalPosition();
+			pos.x = PixelScale( ScrubBarWidth * -0.5f + seekwidth );
+			SeekTime->SetLocalPosition( pos );
 
-					app->ShowInfoText( 1.0f, "hitPos=%f\n,localHit=%f\nparent scale=%f\nprogress=%f",
-							hitPos.x,
-							localHit.x,
-							parentObj->GetLocalScale().x,
-							progress);
-				}
+			SetTimeText( SeekTime, Duration * progress );
+		}
+	}
 
+	return MSG_STATUS_ALIVE;
+}
 
-/*
- * 	Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
+void ScrubBarComponent::OnClick( App * app, VrFrame const & vrFrame, VRMenuEvent const & event )
+{
+	if ( OnClickFunction == NULL )
+	{
+		return;
+	}
+
+	Vector3f hitPos = event.HitResult.RayStart + event.HitResult.RayDir * event.HitResult.t;
 
 	// move hit position into local space
 	const Posef modelPose = Background->GetWorldPose();
@@ -92,137 +215,5 @@ private:
 	{
 		( *OnClickFunction )( this, OnClickObject, progress );
 	}
- * */
-			return MSG_STATUS_ALIVE;
-		}
-		default:
-			OVR_ASSERT( !"Event flags mismatch!" ); // the constructor is specifying a flag that's not handled
-			return MSG_STATUS_ALIVE;
-		}
-
-
-	}
-
-	eMsgStatus OnOpening( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr, VRMenuObject * self, VRMenuEvent const & event )
-	{
-//		CurrentVideo = (OvrVideosMetaDatum *)( VideoMenu.GetVideos()->GetActiveVideo() );
-//		// If opening VideoMenu without a Video selected, bail
-//		if ( CurrentVideo == NULL )
-//		{
-//			app->GetGuiSys().CloseMenu( app, &VideoMenu, false );
-//		}
-//		LoadAttribution( self );
-		return MSG_STATUS_CONSUMED;
-	}
-
-	void LoadAttribution( VRMenuObject * self )
-	{
-//		if ( CurrentVideo )
-//		{
-//			self->SetText( CurrentVideo->Title );
-//		}
-	}
-
-	eMsgStatus OnFrame( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr, VRMenuObject * self, VRMenuEvent const & event )
-	{
-		return MSG_STATUS_ALIVE;
-	}
-
-private:
-	OvrVideoMenu &			VideoMenu;
-};
-
-//==============================
-// OvrVideoMenu
-OvrVideoMenu * OvrVideoMenu::Create( App * app, OvrApp * videos, OvrVRMenuMgr & menuMgr, BitmapFont const & font,float fadeOutTime, float radius )
-{
-	return new OvrVideoMenu( app, videos, menuMgr, font, fadeOutTime, radius );
 }
-
-OvrVideoMenu::OvrVideoMenu( App * app, OvrApp * videos, OvrVRMenuMgr & menuMgr, BitmapFont const & font,
-	float fadeOutTime, float radius )
-	: VRMenu( MENU_NAME )
-	, AppPtr( app )
-	, MenuMgr( menuMgr )
-	, Font( font )
-	, Videos( videos )
-	, LoadingIconHandle( 0 )
-	, AttributionHandle( 0 )
-	, BrowserButtonHandle( 0 )
-	, VideoControlButtonHandle( 0 )
-	, Radius( radius )
-	, ButtonCoolDown( 0.0f )
-	, OpenTime( 0.0 )
-{
-	// Init with empty root
-	Init( menuMgr, font, 0.0f, VRMenuFlags_t() );
-
-	// Create Attribution info view
-	Array< VRMenuObjectParms const * > parms;
-	Array< VRMenuComponent* > comps;
-	Array< VRMenuSurfaceParms > surfParms;
-
-	VRMenuId_t attributionPanelId( ID_CENTER_ROOT.Get() + 10 );
-
-	comps.PushBack( new OvrVideoMenuRootComponent( *this ) );
-	//comps.PushBack( new OvrDefaultComponent( Vector3f( 0.0f, 0.0f, 0.05f ), 1.05f, 0.25f, 0.0f, Vector4f( 1.0f ), Vector4f( 1.0f ) ) );
-	Quatf rot( DOWN, 0.0f );
-	Vector3f dir( -FWD );
-	Posef panelPose( rot, dir * Radius );
-
-	//const Posef panelPose( Quatf( Vector3f( 0.0f, 1.0f, 0.0f ), 0.0f ), Vector3f( 0.0f, 0.0f, 0.0f ) );
-
-	const VRMenuFontParms fontParms( true, true, false, false, true, 0.525f, 0.45f, 1.0f );
-
-	//Posef videoButtonPose( Quatf(), DOWN * ICON_HEIGHT * 2.0f );
-	surfParms.PushBack( VRMenuSurfaceParms( "browser",
-		"assets/nav_restart_off.png", SURFACE_TEXTURE_DIFFUSE,
-		NULL, SURFACE_TEXTURE_MAX, NULL, SURFACE_TEXTURE_MAX ) );
-
-	VRMenuObjectParms controlButtonParms(
-			VRMENU_BUTTON,
-			comps,
-			surfParms,
-			"",
-			panelPose, //pos
-			Vector3f( 1.0f,1.0f,1.0f ), //scale
-			Posef(), //text local pos
-			Vector3f( 1.0f ),  //text local scale
-			fontParms,
-			ID_VIDEO_BUTTON,  //id
-			VRMenuObjectFlags_t( VRMENUOBJECT_DONT_HIT_TEXT ),
-			VRMenuObjectInitFlags_t( VRMENUOBJECT_INIT_FORCE_POSITION ));
-
-
-	parms.PushBack( &controlButtonParms );
-
-	AddItems( MenuMgr, Font, parms, GetRootHandle(), false );
-	parms.Clear();
-	comps.Clear();
-
-
-}
-
-OvrVideoMenu::~OvrVideoMenu()
-{
-
-}
-
-void OvrVideoMenu::Open_Impl( App * app, OvrGazeCursor & gazeCursor )
-{
-	ButtonCoolDown = BUTTON_COOL_DOWN_SECONDS;
-
-	OpenTime = ovr_GetTimeInSeconds();
-}
-
-void OvrVideoMenu::Frame_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr, BitmapFont const & font, BitmapFontSurface & fontSurface, gazeCursorUserId_t const gazeUserId )
-{
-
-}
-
-void OvrVideoMenu::OnItemEvent_Impl( App * app, VRMenuId_t const itemId, VRMenuEvent const & event )
-{
-
-}
-
 }
