@@ -16,6 +16,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 #include "UI/UIButton.h"
 #include "UI/UIMenu.h"
 #include "VRMenu/VRMenuMgr.h"
+#include "VrApi/VrApi.h"
 
 
 UIButton::UIButton( App &cinema ) :
@@ -161,4 +162,94 @@ eMsgStatus UIButtonComponent::FocusLost( App * app, VrFrame const & vrFrame, Ovr
     return MSG_STATUS_ALIVE;
 }
 
+//==============================
+//  UIButtonComponentGaze::
 
+UIButtonComponentGaze::UIButtonComponentGaze( UIButtonGaze &button ):
+    VRMenuComponent( VRMenuEventFlags_t( VRMENU_EVENT_FRAME_UPDATE ) |
+            VRMENU_EVENT_FOCUS_GAINED |
+            VRMENU_EVENT_FOCUS_LOST ),
+    Button( button ),
+    HasFocus(false),
+    LastGazeTime(0)
+
+
+{
+}
+eMsgStatus UIButtonComponentGaze::OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+        VRMenuObject * self, VRMenuEvent const & event )
+{
+    switch( event.EventType )
+    {
+        case VRMENU_EVENT_FOCUS_GAINED:
+            return FocusGained( app, vrFrame, menuMgr, self, event );
+        case VRMENU_EVENT_FOCUS_LOST:
+            return FocusLost( app, vrFrame, menuMgr, self, event );
+    	case VRMENU_EVENT_FRAME_UPDATE:
+    		if ( HasFocus )
+    		{
+    			double timeSinceLastGaze = ovr_GetTimeInSeconds() -LastGazeTime;
+    			if(timeSinceLastGaze>1) //暂时写死500ms
+    			{
+    				Button.OnClick();
+    			}
+
+    			//LOG("%f",timeSinceLastGaze);
+    			//LastGazeTime = ovr_GetTimeInSeconds();
+    		}
+    		return MSG_STATUS_ALIVE;
+        default:
+            OVR_ASSERT( !"Event flags mismatch!" );
+            return MSG_STATUS_ALIVE;
+    }
+}
+
+eMsgStatus UIButtonComponentGaze::FocusGained( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+        VRMenuObject * self, VRMenuEvent const & event )
+{
+    // set the hilight flag
+	HasFocus=true;
+    self->SetHilighted( true );
+    Button.UpdateButtonState();
+	GazeOverSoundLimiter.PlaySound( app, "gaze_on", 0.1 );
+	LastGazeTime = ovr_GetTimeInSeconds();
+    return MSG_STATUS_ALIVE;
+}
+
+//==============================
+//  UIButtonComponent::FocusLost
+eMsgStatus UIButtonComponentGaze::FocusLost( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+        VRMenuObject * self, VRMenuEvent const & event )
+{
+    // clear the hilight flag
+    self->SetHilighted( false );
+    HasFocus = false;
+    Button.UpdateButtonState();
+    GazeOverSoundLimiter.PlaySound( app, "gaze_off", 0.1 );
+    return MSG_STATUS_ALIVE;
+}
+
+
+UIButtonGaze::UIButtonGaze( App &cinema ) :
+		UIButton( cinema ),
+		gazeButtonComponent( *this )
+{
+}
+
+void UIButtonGaze::AddToMenu( UIMenu *menu, UIWidget *parent )
+{
+	const Posef pose( Quatf( Vector3f( 0.0f, 1.0f, 0.0f ), 0.0f ), Vector3f( 0.0f, 0.0f, 0.0f ) );
+
+	Vector3f defaultScale( 1.0f );
+	VRMenuFontParms fontParms( true, true, false, false, false, 1.0f );
+
+	VRMenuObjectParms parms( VRMENU_BUTTON, Array< VRMenuComponent* >(), VRMenuSurfaceParms(),
+			"", pose, defaultScale, fontParms, menu->AllocId(),
+			VRMenuObjectFlags_t(), VRMenuObjectInitFlags_t( VRMENUOBJECT_INIT_FORCE_POSITION ) );
+
+	AddToMenuWithParms( menu, parent, parms );
+
+	VRMenuObject * object = GetMenuObject();
+	OVR_ASSERT( object );
+	object->AddComponent( &gazeButtonComponent );
+}

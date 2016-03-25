@@ -43,7 +43,7 @@ public:
 
 	bool			IsPressed() const { return TouchDown; }
 
-private:
+protected:
 	UIButton &		Button;
 
     SoundLimiter    GazeOverSoundLimiter;
@@ -52,15 +52,17 @@ private:
 
     bool			TouchDown;
 
-private:
+
     virtual eMsgStatus      OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
                                     VRMenuObject * self, VRMenuEvent const & event );
-
+private:
     eMsgStatus              FocusGained( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
                                     VRMenuObject * self, VRMenuEvent const & event );
     eMsgStatus              FocusLost( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
                                     VRMenuObject * self, VRMenuEvent const & event );
 };
+
+
 
 //==============================================================
 // UIButton
@@ -69,31 +71,73 @@ class UIButton : public UIWidget
 {
 	friend class UIButtonComponent;
 
-public:
-										UIButton( OVR::App &cinema );
-										~UIButton();
+	public:
+											UIButton( OVR::App &cinema );
+											~UIButton();
 
-	void 								AddToMenu( UIMenu *menu, UIWidget *parent = NULL );
+		virtual void 						AddToMenu( UIMenu *menu, UIWidget *parent = NULL );
 
-	void								SetButtonImages( const UITexture &normal, const UITexture &hover, const UITexture &pressed );
+		void								SetButtonImages( const UITexture &normal, const UITexture &hover, const UITexture &pressed );
 
-	void								SetOnClick( void ( *callback )( UIButton *, void * ), void *object );
+		void								SetOnClick( void ( *callback )( UIButton *, void * ), void *object );
 
-	void								UpdateButtonState();
+		void								UpdateButtonState();
+		void 								OnClick();
+	private:
+		UIButtonComponent					ButtonComponent;
+	protected:
+		UITexture 							Normal;
+		UITexture 							Hover;
+		UITexture 							Pressed;
 
-private:
-	UIButtonComponent					ButtonComponent;
-	UITexture 							Normal;
-	UITexture 							Hover;
-	UITexture 							Pressed;
+		void 								( *OnClickFunction )( UIButton *button, void *object );
+		void *								OnClickObject;
 
-	void 								( *OnClickFunction )( UIButton *button, void *object );
-	void *								OnClickObject;
-
-	void 								OnClick();
 
 };
 
+class UIButtonGaze;
+
+//带有凝视输入的button
+class UIButtonComponentGaze:public VRMenuComponent
+{
+public:
+	static const int TYPE_ID = 159597;
+
+	UIButtonComponentGaze( UIButtonGaze &button );
+	virtual ~UIButtonComponentGaze(){}
+	virtual int		GetTypeId() const { return TYPE_ID; }
+	//bool			IsPressed() const { return TouchDown; }
+protected:
+	UIButtonGaze &		Button;
+    bool			HasFocus;
+    double			LastGazeTime;
+    SoundLimiter    GazeOverSoundLimiter;
+    SoundLimiter    DownSoundLimiter;
+    SoundLimiter    UpSoundLimiter;
+
+
+    virtual eMsgStatus      OnEvent_Impl( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+                                    VRMenuObject * self, VRMenuEvent const & event );
+private:
+    eMsgStatus              FocusGained( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+                                    VRMenuObject * self, VRMenuEvent const & event );
+    eMsgStatus              FocusLost( App * app, VrFrame const & vrFrame, OvrVRMenuMgr & menuMgr,
+                                    VRMenuObject * self, VRMenuEvent const & event );
+};
+
+class UIButtonGaze : public UIButton
+{
+	friend class UIButtonComponentGaze;
+public:
+	UIButtonGaze( OVR::App &cinema );
+	virtual void 	AddToMenu( UIMenu *menu, UIWidget *parent = NULL );
+	virtual ~UIButtonGaze(){};
+
+private:
+	UIButtonComponentGaze				gazeButtonComponent;
+
+};
 
 
 #endif // UIButton_h

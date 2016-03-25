@@ -95,13 +95,13 @@ public:
 	UIContainer* 			PlaybackControlsScale;
 	UILabel* 				MovieTitleLabel;
 
-	UIImage*					SeekIcon;
+	UIImage*				SeekIcon;
 
-	UIImage*					ControlsBackground;
+	UIImage*				ControlsBackground;
 	ControlsGazeTimer		GazeTimer;
 
 	UIButton*				RewindButton;
-	UIButton*				PlayButton;
+	UIButtonGaze*			PlayButton;
 	UIButton*				FastForwardButton;
 	UIButton*				CarouselButton;
 

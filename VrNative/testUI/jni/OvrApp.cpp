@@ -34,7 +34,15 @@ jlong Java_oculus_MainActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz
 
 using namespace OVR;
 
-
+//响应点击进度条的回调函数
+void ScrubBarCallback( ScrubBarComponent *scrubbar, void *object, const float progress )
+{
+	((OvrApp*)object)->app->ShowInfoText(1.f,"progress=%f",progress);
+}
+void PlayPressedCallback( UIButton *button, void *object )
+{
+	((OvrApp*)object)->app->ShowInfoText(1.f,"Play Button Pressed");
+}
 OvrApp::OvrApp():
 		VrAppInterface(),
 			BackgroundTintTexture(),
@@ -72,7 +80,6 @@ OvrApp::OvrApp():
 			ScrubBar()
 
 {
-	SSSA_LOG_FUNCALL(1);
 }
 
 OvrApp::~OvrApp()
@@ -80,32 +87,21 @@ OvrApp::~OvrApp()
 }
 void OvrApp::ShowUI()
 {
-	//Cinema.SceneMgr.ForceMono = true;
 	app->GetGazeCursor().ShowCursor();
 
 	PlaybackControlsMenu->Open();
 	GazeTimer.SetGazeTime();
 
-	PlaybackControlsScale->SetLocalScale( Vector3f(2.f,2.0f,2.0f/* Cinema.SceneMgr.GetScreenSize().y * ( 500.0f / 1080.0f ) */) );
-//	static const Vector3f FWD( 0.0f, 0.0f, 1.0f );
-//	static const Vector3f RIGHT( 1.0f, 0.0f, 0.0f );
-//	static const Vector3f UP( 0.0f, 1.0f, 0.0f );
-//	static const Vector3f DOWN( 0.0f, -1.0f, 0.0f );
-//	Quatf rot( DOWN, 0.0f );
-//	Vector3f dir( -FWD );
-//	Posef panelPose( rot, dir * 2.f );
-
-	Posef panelPose (Quatf(0,0,0,1),Vector3f(2,2.4,-2)); //from cinema sdk sample's log
-	PlaybackControlsPosition->SetLocalPose( panelPose/*Cinema.SceneMgr.GetScreenPose()*/ );
+	PlaybackControlsScale->SetLocalScale( Vector3f(2.f,2.0f,2.0f));
+	Posef panelPose (Quatf(0,0,0,1),Vector3f(0,2.4,-2));
+	PlaybackControlsPosition->SetLocalPose( panelPose);
 
 	//uiActive = true;
 }
 void OvrApp::HideUI()
 {
-	LOG( "HideUI" );
 	PlaybackControlsMenu->Close();
-
-//	Cinema.app->GetGazeCursor().HideCursor();
+	app->GetGazeCursor().HideCursor();
 //	Cinema.SceneMgr.ForceMono = false;
 //	uiActive = false;
 //
@@ -128,7 +124,7 @@ void OvrApp::CreateMenu( App * app, OvrVRMenuMgr & menuMgr, BitmapFont const & f
 	SeekIcon=new UIImage( *app);
 	ControlsBackground=new UIImage(*app);
 	RewindButton=new UIButton( *app );
-	PlayButton=new UIButton( *app );
+	PlayButton=new UIButtonGaze( *app );
 	FastForwardButton=new UIButton( *app );
 	CarouselButton=new UIButton( *app );
 	SeekbarBackground=new UIImage( *app );
@@ -177,22 +173,7 @@ void OvrApp::CreateMenu( App * app, OvrVRMenuMgr & menuMgr, BitmapFont const & f
 	SeekRW32x.LoadTextureFromApplicationPackage( "assets/img_seek_rw32x.png" );
 
     // ==============================================================================
-    //
-    // reorient message
-    //
-	MoveScreenMenu = new UIMenu( *app );
-	MoveScreenMenu->Create( "MoviePlayerMenu" );
-	MoveScreenMenu->SetFlags( VRMenuFlags_t( VRMENU_FLAG_TRACK_GAZE ) | VRMenuFlags_t( VRMENU_FLAG_BACK_KEY_DOESNT_EXIT ) );
 
-	MoveScreenLabel->AddToMenu( MoveScreenMenu, NULL );
-    MoveScreenLabel->SetLocalPose( Quatf( Vector3f( 0.0f, 1.0f, 0.0f ), 0.0f ), Vector3f( 0.0f, 0.0f, -1.8f ) );
-    MoveScreenLabel->GetMenuObject()->AddFlags( VRMenuObjectFlags_t( VRMENUOBJECT_DONT_HIT_ALL ) );
-    MoveScreenLabel->SetFontScale( 0.5f );
-    MoveScreenLabel->SetText( "abc" );
-    MoveScreenLabel->SetTextOffset( Vector3f( 0.0f, -24 * VRMenuObject::DEFAULT_TEXEL_SCALE, 0.0f ) );  // offset to be below gaze cursor
-    MoveScreenLabel->SetVisible( false );
-
-    // ==============================================================================
     //
     // Playback controls
     //
@@ -209,21 +190,21 @@ void OvrApp::CreateMenu( App * app, OvrVRMenuMgr & menuMgr, BitmapFont const & f
     //
     // movie title
     //
-    MovieTitleLabel->AddToMenu( PlaybackControlsMenu, PlaybackControlsScale );
-    MovieTitleLabel->SetLocalPosition( PixelPos( 0, 266, 0 ) );
-    MovieTitleLabel->SetFontScale( 1.4f );
-    MovieTitleLabel->SetText( "" );
-    MovieTitleLabel->SetTextOffset( Vector3f( 0.0f, 0.0f, 0.01f ) );
-    MovieTitleLabel->SetImage( 0, SURFACE_TEXTURE_DIFFUSE, BackgroundTintTexture, 320, 120 );
+//    MovieTitleLabel->AddToMenu( PlaybackControlsMenu, PlaybackControlsScale );
+//    MovieTitleLabel->SetLocalPosition( PixelPos( 0, 266, 0 ) );
+//    MovieTitleLabel->SetFontScale( 1.4f );
+//    MovieTitleLabel->SetText( "" );
+//    MovieTitleLabel->SetTextOffset( Vector3f( 0.0f, 0.0f, 0.01f ) );
+//    MovieTitleLabel->SetImage( 0, SURFACE_TEXTURE_DIFFUSE, BackgroundTintTexture, 320, 120 );
 
 	// ==============================================================================
     //
     // seek icon
     //
-    SeekIcon->AddToMenu( PlaybackControlsMenu, PlaybackControlsScale );
-    SeekIcon->SetLocalPosition( PixelPos( 0, 0, 0 ) );
-    SeekIcon->SetLocalScale( Vector3f( 2.0f ) );
-    //SetSeekIcon( 0 );
+//    SeekIcon->AddToMenu( PlaybackControlsMenu, PlaybackControlsScale );
+//    SeekIcon->SetLocalPosition( PixelPos( 0, 0, 0 ) );
+//    SeekIcon->SetLocalScale( Vector3f( 2.0f ) );
+//    //SetSeekIcon( 0 );
 
     // ==============================================================================
     //
@@ -252,7 +233,7 @@ void OvrApp::CreateMenu( App * app, OvrVRMenuMgr & menuMgr, BitmapFont const & f
     PlayButton->SetLocalPosition( PixelPos( -341, 0, 2 ) );
     PlayButton->SetLocalScale( Vector3f( 2.0f ) );
     PlayButton->SetButtonImages( PauseTexture, PauseHoverTexture, PausePressedTexture );
-    //PlayButton.SetOnClick( PlayPressedCallback, this );
+    PlayButton->SetOnClick( PlayPressedCallback, this );
 
 	CarouselButton->AddToMenu( PlaybackControlsMenu, ControlsBackground );
 	CarouselButton->SetLocalPosition( PixelPos( 418, 0, 1 ) );
@@ -295,8 +276,11 @@ void OvrApp::CreateMenu( App * app, OvrVRMenuMgr & menuMgr, BitmapFont const & f
 	SeekTime->GetMenuObject()->AddFlags( VRMenuObjectFlags_t( VRMENUOBJECT_DONT_HIT_ALL ) );
 
 	ScrubBar.SetWidgets( SeekbarBackground, SeekbarProgress, CurrentTime, SeekTime, ScrubBarWidth );
-	//ScrubBar.SetOnClick( ScrubBarCallback, this );
+	ScrubBar.SetOnClick( ScrubBarCallback, this ); //设置点击的回调函数
 }
+
+
+
 void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSON, const char * launchIntentURI )
 {
 	SSSA_LOG_FUNCALL(1);
