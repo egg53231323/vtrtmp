@@ -188,11 +188,10 @@ void ScrubBarComponent::OnClick( App * app, VrFrame const & vrFrame, VRMenuEvent
 
 	Bounds3f bounds = Background->GetMenuObject()->GetLocalBounds( app->GetDefaultFont() ) * Background->GetParent()->GetWorldScale();
 	const float progress = ( localHit.x - bounds.GetMins().x ) / bounds.GetSize().x;
-	app->ShowInfoText(1.f,"progress=%f",progress);
 
-//	if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
-//	{
-//		( *OnClickFunction )( this, OnClickObject, progress );
-//	}
+	if ( ( progress >= 0.0f ) && ( progress <= 1.0f ) )
+	{
+		( *OnClickFunction )( this, OnClickObject, progress );
+	}
 }
 }
