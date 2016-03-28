@@ -45,7 +45,7 @@ enum TimeWarpMode_t
 class TimeWarpInitParms
 {
 public:
-	TimeWarpInitParms() : 
+	TimeWarpInitParms() :
 		FrontBuffer( true ),
 		AsynchronousTimeWarp( true ),
 		EnableImageServer( false ),

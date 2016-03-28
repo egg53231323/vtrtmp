@@ -11,6 +11,9 @@
 #include "Kernel/OVR_Math.h"
 #include "../../LibOVR/Src/Kernel/OVR_Atomic.h"
 #include "../../LibOVR/Src/Kernel/OVR_Timer.h"
+#include "OVR_SensorDeviceImpl.h"
+
+#include <jni.h>
 
 namespace OVR
 {
@@ -24,6 +27,14 @@ namespace OVR
 
 
 	const char* MyDevice_SerialNumber = "1234567890";
+
+	My_ScensorGyroDevice* myDevice = NULL;
+
+	My_ScensorGyroDevice::My_ScensorGyroDevice(DeviceCreateDesc* createDesc, DeviceBase* parent) :
+		SensorDevice(), DeviceCommon(createDesc, this, parent) {
+		lastTimeStamp = -1;
+		myDevice = this;
+	}
 
 	void My_ScensorGyroDevice::SetCoordinateFrame(CoordinateFrame coordframe)
 	{
@@ -96,12 +107,18 @@ namespace OVR
 	}
 
 
+	void My_ScensorGyroDevice::OnEvent(int i, int fd)
+	{
+		
+	}
 	bool My_ScensorGyroDevice::Initialize(DeviceBase* parent)
 	{
 		//sssa_log_obj t("My_ScensorGyroDevice::Initialize()");
 		SSSA_LOG_FUNCALL(1);
 		pParent = parent; 
-		((OVR::Android::DeviceManager*)GetManager())->pThread->AddASensorNotifier(this, SENSOR_TYPE_GYROSCOPE);
+
+
+		//((OVR::Android::DeviceManager*)GetManager())->pThread->AddASensorNotifier(this, SENSOR_TYPE_GYROSCOPE);
 		return true;
 	}
 
@@ -112,43 +129,39 @@ namespace OVR
 
 	void My_ScensorGyroDevice::OnASensorEvent(void* pEv)
 	{
-		ASensorMessage* pMsg = (ASensorMessage*)pEv;
+		//ASensorMessage* pMsg = (ASensorMessage*)pEv;
 
 		//LogText("SensorMessage - gyro(%f,%f,%f), accel(%f,%f,%f), mag(%f,%f,%f),temp(%f), timestamp(%d) \n",
-		//	pMsg->gyro.x, pMsg->gyro.y, pMsg->gyro.z,
-		//	pMsg->accel.x, pMsg->accel.y, pMsg->accel.z,
-		//	pMsg->mag.x, pMsg->mag.y, pMsg->mag.z,
-		//	pMsg->temperature, (int)pMsg->timestamp
-		//	);
+		//		pMsg->gyro.x, pMsg->gyro.y, pMsg->gyro.z,
+		//		pMsg->accel.x, pMsg->accel.y, pMsg->accel.z,
+		//		pMsg->mag.x, pMsg->mag.y, pMsg->mag.z,
+		//		pMsg->temperature, (int)pMsg->timestamp
+		//		);
 
-		if (lastTimeStamp == -1)
-		{
-			lastTimeStamp = pMsg->timestamp;
-		}
+		//if (lastTimeStamp == -1)
+		//{
+		//	lastTimeStamp = pMsg->timestamp;
+		//}
 
-		int64_t timeDelta = pMsg->timestamp - lastTimeStamp;
-		lastTimeStamp = pMsg->timestamp;
+		//int64_t timeDelta = pMsg->timestamp - lastTimeStamp;
+		//lastTimeStamp = pMsg->timestamp;
 
-	
+		//int timeDeltaTicks = (int)(timeDelta / 1000000);
+		//float timeDeltaSeconds = (float)timeDeltaTicks / 1000.0f;
 
-		int timeDeltaTicks = (int)(timeDelta / 1000000);
-		float timeDeltaSeconds = (float)timeDeltaTicks / 1000.0f;
+		//if (HandlerRef.GetHandler())
+		//{
+		//	MessageBodyFrame msg(this);
 
-		//LogText("timeDeltaSecs = %f", timeDeltaSeconds);
+		//	msg.AbsoluteTimeSeconds = OVR::Timer::GetSeconds();
+		//	msg.RotationRate = Vector3f( -pMsg->gyro.y , pMsg->gyro.x , pMsg->gyro.z);
+		//	msg.Acceleration = pMsg->accel;
+		//	msg.MagneticField = pMsg->mag;
+		//	msg.Temperature = pMsg->temperature;  
+		//	msg.TimeDelta = timeDeltaSeconds;
+		//	HandlerRef.GetHandler()->OnMessage(msg); 
 
-		if (HandlerRef.GetHandler())
-		{
-			MessageBodyFrame msg(this);
-
-			msg.AbsoluteTimeSeconds = OVR::Timer::GetSeconds();
-			msg.RotationRate = Vector3f( -pMsg->gyro.y , pMsg->gyro.x , pMsg->gyro.z);
-			msg.Acceleration = Vector3f( -pMsg->accel.y , pMsg->accel.x , pMsg->accel.z);
-			msg.MagneticField = pMsg->mag;
-			msg.Temperature = pMsg->temperature;  
-			msg.TimeDelta = timeDeltaSeconds;
-			HandlerRef.GetHandler()->OnMessage(msg); 
-
-		}
+		//}
 	 
  
 	}

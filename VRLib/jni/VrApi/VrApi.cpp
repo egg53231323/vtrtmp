@@ -63,16 +63,9 @@ void ovr_InitSensors()
 #else
 
     OvrHmdState = new HMDState();
-	LOG("HEHEHE");
     if ( OvrHmdState != NULL )
 	{
-		if (OvrHmdState->InitDevice())
-		{
-			LOG("OvrHmdState->InitDevice Suc！");
-		}
-		else{
-			LOG("OvrHmdState->InitDevice Failed！");
-		}
+        OvrHmdState->InitDevice();
     }
 
 	if ( OvrHmdState == NULL )
@@ -112,12 +105,11 @@ void ovr_ShutdownSensors()
 bool ovr_InitializeInternal()
 {
 	SSSA_LOG_FUNCALL(1);
-//    // We must set up the system for the plugin to work
-//    if ( !OVR::System::IsInitialized() )
-//	{
-//    	OVR::System::Init( OVR::Log::ConfigureDefaultLog( OVR::LogMask_All ) );
-//	}
-	//
+    // We must set up the system for the plugin to work
+    if ( !OVR::System::IsInitialized() )
+	{
+    	OVR::System::Init( OVR::Log::ConfigureDefaultLog( OVR::LogMask_All ) );
+	}
 
 	ovr_InitSensors();
 
@@ -145,7 +137,6 @@ SensorState::operator const ovrSensorState& () const
 
 ovrSensorState ovr_GetSensorStateInternal( double absTime )
 {
-
 	if ( OvrHmdState == NULL )
 	{
 		ovrSensorState state;
@@ -327,14 +318,7 @@ void Java_com_oculusvr_vrlib_VrLib_nativeVsync( JNIEnv *jni, jclass clazz, jlong
 
 JNIEXPORT jint JNI_OnLoad( JavaVM * vm, void * reserved )
 {
-
-	LOG( "JNI_OnLoad Yoyo haha" );
-
-	   // We must set up the system for the plugin to work
-	    if ( !OVR::System::IsInitialized() )
-		{
-	    	OVR::System::Init( OVR::Log::ConfigureDefaultLog( OVR::LogMask_All ) );
-		}
+	LOG( "JNI_OnLoad" );
 
 	// Lookup our classnames
 	//注册VrLib，以及各广播接收器类的Native函数
@@ -348,7 +332,7 @@ JNIEXPORT jint JNI_OnLoad( JavaVM * vm, void * reserved )
 
 JNIEXPORT void Java_com_oculusvr_vrlib_VrLib_nativeVolumeEvent(JNIEnv *jni, jclass clazz, jint volume)
 {
-	LOG( "nativeVolumeEvent(%i)", volume );
+    LOG( "nativeVolumeEvent(%i)", volume );
 
     CurrentVolume.SetState( volume );
     double now = ovr_GetTimeInSeconds();
@@ -527,7 +511,6 @@ double ovr_GetTimeInSeconds()
 // by supporting VR.
 void ovr_OnLoad( JavaVM * JavaVm_ )
 {
-	//SSSA_LOG_FUNCALL(1);
 	LOG( "ovr_OnLoad()" );
 
 	if ( JavaVm_ == NULL )
@@ -626,7 +609,6 @@ void ovr_OnLoad( JavaVM * JavaVm_ )
 // plugin event to avoid starting the device manager.
 void ovr_Init()
 {
-
 	LOG( "ovr_Init" );
 
 	// initialize Oculus code
@@ -813,80 +795,39 @@ bool ovr_StartSystemActivity_JSON( ovrMobile * ovr, const char * jsonText )
 	return true;
 }
 
-// creates a command for sending to System Activities with optional embedded extra JSON text.
-bool ovr_CreateSystemActivityIntent( ovrMobile * ovr, const char * command, const char * extraJsonText, 
-		char * outBuffer, unsigned long long const outBufferSize, unsigned long long & outRequiredBufferSize )
-{
-	SSSA_LOG_FUNCALL(1);
-	outRequiredBufferSize = 0;
-	if ( outBuffer == NULL || outBufferSize < 1 )
-	{
-		return false;
-	}
-	outBuffer[0] = '\0';
-
-	OVR::JSON * jsonObj = OVR::JSON::CreateObject();
-	if ( jsonObj == NULL ) 
-	{
-		return false;
-	}
-
-	jsonObj->AddStringItem( "Command", command );
-	jsonObj->AddStringItem( "OVRVersion", ovr_GetVersionString() );
-	jsonObj->AddNumberItem( "PlatformUIVersion", PLATFORM_UI_VERSION );
-
-	char * text = jsonObj->PrintValue( 0, true );
-	jsonObj->Release();
-
-	if ( text == NULL ) 
-	{
-		return false;
-	}
-
-	// combine the JSON objects
-	if ( extraJsonText != NULL && extraJsonText[0] != '\0' )
-	{
-		OVR::String combinedText = text;
-		combinedText.Remove( combinedText.GetLength() - 2 );	// strip off the } and a line feed
-		combinedText.AppendString( ",\n" );
-		combinedText.AppendString( extraJsonText );
-		combinedText.AppendString( "\n}" );
-	}
-
-	outRequiredBufferSize = OVR::OVR_strlen( text ) + 1;
-	if ( outBufferSize < outRequiredBufferSize )
-	{
-		return false;
-	}
-
-	OVR::OVR_strcpy( outBuffer, outBufferSize, text );
-	OVR_FREE( text );
-
-	return true;
-}
-
 // creates a JSON object with command and version info in it and combines that with a pre-serialized json object
-bool ovr_StartSystemActivity( ovrMobile * ovr, const char * command, const char * extraJsonText )
+bool ovr_StartSystemActivity( ovrMobile * ovr, const char * command, const char * jsonText )
 {
-	SSSA_LOG_FUNCALL(1);
-
-	unsigned long long const INTENT_COMMAND_SIZE = 1024;
-	OVR::MemBufferT< char > intentBuffer( INTENT_COMMAND_SIZE );
-	unsigned long long requiredSize = 0;
-	if ( !ovr_CreateSystemActivityIntent( ovr, command, extraJsonText, intentBuffer, INTENT_COMMAND_SIZE, requiredSize ) )
+	bool result = false;
+	OVR::JSON * jsonObj = OVR::JSON::CreateObject();
+	if ( jsonObj != NULL ) 
 	{
-		OVR_ASSERT( requiredSize > INTENT_COMMAND_SIZE );	// if this isn't true, command creation failed for some other reason
-		// reallocate a buffer of the required size
-		intentBuffer.Realloc( requiredSize );
-		bool ok = ovr_CreateSystemActivityIntent( ovr, command, extraJsonText, intentBuffer, INTENT_COMMAND_SIZE, requiredSize );
-		if ( !ok )
-		{
-			OVR_ASSERT( ok );
-			return false;
-		}
-	}
+		jsonObj->AddStringItem( "Command", command );
+		jsonObj->AddStringItem( "OVRVersion", ovr_GetVersionString() );
+		jsonObj->AddNumberItem( "PlatformUIVersion", PLATFORM_UI_VERSION );
 
-	return ovr_StartSystemActivity_JSON( ovr, intentBuffer );
+		char * text = jsonObj->PrintValue( 0, true );
+		if ( text != NULL ) 
+		{
+			// combine the JSON objects
+			if ( jsonText == NULL )
+			{
+				result = ovr_StartSystemActivity_JSON( ovr, text );
+			}
+			else
+			{
+				OVR::String combinedText = text;
+				combinedText.Remove( combinedText.GetLength() - 2 );	// strip off the } and a line feed
+				combinedText.AppendString( ",\n" );
+				combinedText.AppendString( jsonText );
+				combinedText.AppendString( "\n}" );
+				result = ovr_StartSystemActivity_JSON( ovr, combinedText.ToCStr() );
+			}
+			OVR_FREE( text );
+		}
+		jsonObj->Release();
+	}
+	return result;
 }
 
 void ovr_ExitActivity( ovrMobile * ovr, eExitType exitType )
@@ -1253,8 +1194,7 @@ static bool WriteFreq( const int freq, const char * pathFormat, ... )
 static void SetVrSystemPerformance( JNIEnv * VrJni, jclass vrActivityClass, jobject activityObject,
 		const int cpuLevel, const int gpuLevel )
 {
-	//直接返回
-	return;
+	SSSA_LOG_FUNCALL(1);
 	// Clear any previous exceptions.
 	// NOTE: This can be removed once security exception handling is moved to 
 	// Java IF.
@@ -1269,9 +1209,14 @@ static void SetVrSystemPerformance( JNIEnv * VrJni, jclass vrActivityClass, jobj
 	// Get the available clock levels for the device.
 	const jmethodID getAvailableClockLevelsId = ovr_GetStaticMethodID( VrJni, vrActivityClass,
 		"getAvailableFreqLevels", "(Landroid/app/Activity;)[I" ); 
+	if (getAvailableClockLevelsId == NULL)
+	{
+		return;
+	}
+	
 	jintArray jintLevels = (jintArray)VrJni->CallStaticObjectMethod( vrActivityClass,
 		getAvailableClockLevelsId, activityObject );
-
+	
 	// Move security exception detection to the java IF.
 	// Catch Permission denied
 	if ( VrJni->ExceptionOccurred() )
@@ -1284,17 +1229,19 @@ static void SetVrSystemPerformance( JNIEnv * VrJni, jclass vrActivityClass, jobj
 	OVR_ASSERT( VrJni->GetArrayLength( jintLevels )== 4 );		// {GPU MIN, GPU MAX, CPU MIN, CPU MAX}
 
 	jint * levels = VrJni->GetIntArrayElements( jintLevels, NULL );
+	int localLevels[4];
+	memcpy(localLevels, levels, sizeof(localLevels));
 	if ( levels != NULL )
 	{
 		// Verify levels are within appropriate range for the device
 		if ( cpuLevel >= 0 )
 		{
-			OVR_ASSERT( cpuLevel >= levels[LEVEL_CPU_MIN] && cpuLevel <= levels[LEVEL_CPU_MAX] );
+			//OVR_ASSERT( cpuLevel >= levels[LEVEL_CPU_MIN] && cpuLevel <= levels[LEVEL_CPU_MAX] );
 			LOG( "CPU levels [%d, %d]", levels[LEVEL_CPU_MIN], levels[LEVEL_CPU_MAX] );
 		}
 		if ( gpuLevel >= 0 )
 		{
-			OVR_ASSERT( gpuLevel >= levels[LEVEL_GPU_MIN] && gpuLevel <= levels[LEVEL_GPU_MAX] );
+			//OVR_ASSERT( gpuLevel >= levels[LEVEL_GPU_MIN] && gpuLevel <= levels[LEVEL_GPU_MAX] );
 			LOG( "GPU levels [%d, %d]", levels[LEVEL_GPU_MIN], levels[LEVEL_GPU_MAX] );
 		}
 
@@ -1302,9 +1249,21 @@ static void SetVrSystemPerformance( JNIEnv * VrJni, jclass vrActivityClass, jobj
 	}
 	VrJni->DeleteLocalRef( jintLevels );
 
+	if (localLevels[0] == -1 || localLevels[1] == -1 ||
+		localLevels[2] == -1 || localLevels[3] == -1)
+	{
+		LOG("getAvailableFreqLevels not support");
+		return;
+	}
+
 	// Set the fixed cpu and gpu clock levels
 	const jmethodID setSystemPerformanceId = ovr_GetStaticMethodID( VrJni, vrActivityClass,
-			"setSystemPerformanceStatic", "(Landroid/app/Activity;II)[I" );
+		"setSystemPerformanceStatic", "(Landroid/app/Activity;II)[I");
+	if (setSystemPerformanceId == NULL)
+	{
+		return;
+	}
+
 	jintArray jintClocks = (jintArray)VrJni->CallStaticObjectMethod( vrActivityClass, setSystemPerformanceId,
 			activityObject, cpuLevel, gpuLevel );
 
@@ -1881,12 +1840,6 @@ void ovr_HandleHmdEvents( ovrMobile * ovr )
 	if ( dockState.DockState == HMT_DOCK_UNDOCKED )
 	{
 		LOG( "ovr_HandleHmdEvents::Hmt was disconnected" );
-
-		// reset the sensor info
-		if ( OvrHmdState != NULL )
-		{
-			OvrHmdState->ResetSensor();
-		}
 
 		// reset the real dock state since we're handling the change
 		HMTDockState.SetState( HMTDockState_t( HMT_DOCK_NONE ) );

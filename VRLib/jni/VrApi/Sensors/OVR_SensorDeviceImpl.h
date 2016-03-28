@@ -23,6 +23,15 @@ namespace OVR {
 struct TrackerMessage;
 class ExternalVisitor;
 
+
+enum
+{
+	DEVICE_TYPE_M3D = 0,
+	DEVICE_TYPE_DK1,
+};
+
+int GetSensorDeviceType();
+
 //-------------------------------------------------------------------------------------
 // SensorDeviceFactory enumerates Oculus Sensor devices.
 class SensorDeviceFactory : public DeviceFactory
@@ -57,6 +66,7 @@ public:
     virtual MatchResult MatchDevice(const DeviceCreateDesc& other,
                                     DeviceCreateDesc**) const
     {
+		LogText("SensorDeviceCreateDesc MatchDevice");
         if ((other.Type == Device_Sensor) && (pFactory == other.pFactory))
         {
             const SensorDeviceCreateDesc& s2 = (const SensorDeviceCreateDesc&) other;
@@ -68,6 +78,8 @@ public:
 
     virtual bool MatchHIDDevice(const HIDDeviceDesc& hidDesc) const
     {
+
+		LogText("SensorDeviceCreateDesc MatchHIDDevice");
         // should paths comparison be case insensitive?
         return ((HIDDesc.Path.CompareNoCase(hidDesc.Path) == 0) &&
                 (HIDDesc.SerialNumber == hidDesc.SerialNumber) &&
@@ -187,7 +199,8 @@ public:
     virtual void SetMessageHandler(MessageHandler* handler);
 
     // HIDDevice::Notifier interface.
-    virtual void OnInputReport(UByte* pData, UInt32 length);
+	virtual void OnInputReport(UByte* pData, UInt32 length);
+	virtual void OnInputReport2(UByte* pData, UInt32 length);
     virtual double OnTicks(double tickSeconds);
 
     // HMD-Mounted sensor has a different coordinate frame.

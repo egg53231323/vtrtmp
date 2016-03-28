@@ -306,9 +306,8 @@ void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, i
 	{
 		surfaceMgr.Init( jni );
 
-		LOG("Forbid SetFrontBuffer");
-		//gvrFrontbufferExtension = surfaceMgr.SetFrontBuffer( windowSurface, true );
-		//LOG ( "gvrFrontbufferExtension = %s", ( gvrFrontbufferExtension ) ? "TRUE" : "FALSE" );
+		gvrFrontbufferExtension = surfaceMgr.SetFrontBuffer( windowSurface, true );
+		LOG ( "gvrFrontbufferExtension = %s", ( gvrFrontbufferExtension ) ? "TRUE" : "FALSE" );
 
 		if ( ( gpuType & GPU_TYPE_MALI ) != 0 )
 		{
@@ -498,7 +497,6 @@ void DirectRender::EndDirectRendering() const
 void DirectRender::SwapBuffers() const
 {
 	eglSwapBuffers( display, windowSurface );
-	//LOG( EglErrorString() );
 }
 
 void DirectRender::GetScreenResolution( int & width_, int & height_ ) const

@@ -91,6 +91,7 @@ public:
 
     virtual bool Initialize(DeviceBase* parent)
     {
+		SSSA_LOG_FUNCALL(1);
         // Open HID device.
         HIDDeviceDesc&		hidDesc = *getHIDDesc();
         HIDDeviceManager*   pManager = GetHIDDeviceManager();

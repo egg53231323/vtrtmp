@@ -473,7 +473,6 @@ void *TimeWarpLocal::ThreadStarter( void * parm )
 
 void TimeWarpLocal::WarpThread()
 {
-
 	WarpThreadInit();
 
 	// Signal the main thread to wake up and return.
@@ -481,10 +480,8 @@ void TimeWarpLocal::WarpThread()
 	pthread_cond_signal( &swapIsLatched );
 	pthread_mutex_unlock( &swapMutex );
 
-
 	LOG( "WarpThreadLoop()" );
 
-  
 	bool removedSchedFifo = false;
 
 	// Loop until we get a shutdown request
@@ -570,6 +567,83 @@ TimeWarp * TimeWarp::Factory( TimeWarpInitParms initParms )
 	return new TimeWarpLocal( initParms );
 }
 
+#define CONFIG_VALUE_ITEM( v ) { #v, v, 0 }
+
+EGLConfig MakeValidateConfig(EGLDisplay display, EGLConfig origConfig)
+{
+	struct ConfigValue
+	{
+		const char* name;
+		EGLint type;
+		EGLint value;
+	};
+
+	ConfigValue v[] = {
+		CONFIG_VALUE_ITEM(EGL_BUFFER_SIZE),
+		CONFIG_VALUE_ITEM(EGL_ALPHA_SIZE),
+		CONFIG_VALUE_ITEM(EGL_BLUE_SIZE),
+		CONFIG_VALUE_ITEM(EGL_GREEN_SIZE),
+		CONFIG_VALUE_ITEM(EGL_RED_SIZE),
+		CONFIG_VALUE_ITEM(EGL_DEPTH_SIZE),
+		CONFIG_VALUE_ITEM(EGL_STENCIL_SIZE),
+		CONFIG_VALUE_ITEM(EGL_MAX_PBUFFER_HEIGHT),
+		CONFIG_VALUE_ITEM(EGL_MAX_PBUFFER_PIXELS),
+		CONFIG_VALUE_ITEM(EGL_MAX_PBUFFER_WIDTH),
+		CONFIG_VALUE_ITEM(EGL_SURFACE_TYPE),
+		CONFIG_VALUE_ITEM(EGL_COLOR_BUFFER_TYPE),
+		CONFIG_VALUE_ITEM(EGL_RENDERABLE_TYPE),
+		CONFIG_VALUE_ITEM(EGL_CONFORMANT),
+	};
+
+	int surfaceTypeIndex = 0;
+	int entryCount = sizeof(v) / sizeof(v[0]);
+	for (int i = 0; i < entryCount - 1; i++)
+	{
+		eglGetConfigAttrib(display, origConfig, v[i].type, &v[i].value);
+		if (v[i].type == EGL_SURFACE_TYPE)
+		{
+			surfaceTypeIndex = i;
+		}
+		LOG("egl config attrib %s\t\t = 0x%x", v[i].name, v[i].value);
+	}
+
+	LOG("EGL_SURFACE_TYPE 0x%x", v[surfaceTypeIndex].value);
+	if ((v[surfaceTypeIndex].value & EGL_PBUFFER_BIT) == 0)
+	{
+		v[surfaceTypeIndex].value |= EGL_PBUFFER_BIT;
+		LOG("EGL_SURFACE_TYPE 0x%x", v[surfaceTypeIndex].value);
+
+		EGLConfig newConfig = 0;
+		EGLint numConfig = 0;
+
+		EGLint attri[128];
+		memset(attri, 0, sizeof(attri));
+		int index = 0;
+		for (int i = 0; i < entryCount - 1; i++)
+		{
+			attri[index++] = v[i].type;
+			attri[index++] = v[i].value;
+		}
+		attri[index++] = EGL_NONE;
+
+
+		if (!eglChooseConfig(display, attri, &newConfig, 1, &numConfig) || numConfig == 0)
+		{
+			LOG("choose new config failed!");
+			newConfig = origConfig;
+		}
+		else
+		{
+			LOG("numconfig %d orig config %p new config %p", numConfig, origConfig, newConfig);
+		}
+
+		return newConfig;
+	}
+
+	return origConfig;
+}
+
+
 /*
  * Startup()
  */
@@ -601,7 +675,6 @@ TimeWarpLocal::TimeWarpLocal( const TimeWarpInitParms initParms ) :
 	warpThreadTid( 0 ),
 	LastSwapVsyncCount( 0 )
 {
-	  
 	// Code which auto-disable chromatic aberration expects
 	// the warpProgram list to be symmetric.
 	// See disableChromaticCorrection.
@@ -685,6 +758,18 @@ TimeWarpLocal::TimeWarpLocal( const TimeWarpInitParms initParms ) :
 	{
 		LOG( "Share context eglConfig has %i samples -- should be 0", samples );
 	}
+	
+	EGLint maxPbufferWidth, maxPbufferHeight;
+	eglGetConfigAttrib(eglDisplay, eglConfig, EGL_MAX_PBUFFER_WIDTH, &maxPbufferWidth);
+	eglGetConfigAttrib(eglDisplay, eglConfig, EGL_MAX_PBUFFER_HEIGHT, &maxPbufferHeight);
+	LOG("EGL_MAX_PBUFFER %d x %d", maxPbufferWidth, maxPbufferHeight);
+
+	EGLint surfaceType = 0;
+	eglGetConfigAttrib(eglDisplay, eglConfig, EGL_SURFACE_TYPE, &surfaceType);
+	LOG("EGL_SURFACE_TYPE pbuffer %d pixmap %d window %d",
+		surfaceType & EGL_PBUFFER_BIT ? 1 : 0,
+		surfaceType & EGL_PIXMAP_BIT ? 1 : 0,
+		surfaceType & EGL_WINDOW_BIT ? 1 : 0);
 
 	// See if we have sRGB_write_control extension
 	HasEXT_sRGB_write_control = GL_ExtensionStringPresent( "GL_EXT_sRGB_write_control",
@@ -754,14 +839,15 @@ TimeWarpLocal::TimeWarpLocal( const TimeWarpInitParms initParms ) :
 		//
 		// It is necessary to use a config with the same characteristics that the
 		// context was created with, plus the pbuffer flag, or we will get an
-		// EGL_BAD_MATCH error on the eglMakeCurrent() call.
+		// EGL_BAD_MATCH error on the eglMakeCurrent() call.		
 		const EGLint attrib_list[] =
 		{
 				EGL_WIDTH, 16,
 				EGL_HEIGHT, 16,
 				EGL_NONE
 		};
-		eglPbufferSurface = eglCreatePbufferSurface( eglDisplay, eglConfig, attrib_list );
+		EGLConfig validConfig = MakeValidateConfig(eglDisplay, eglConfig);
+		eglPbufferSurface = eglCreatePbufferSurface(eglDisplay, validConfig, attrib_list);
 		if ( eglPbufferSurface == EGL_NO_SURFACE )
 		{
 			FAIL( "eglCreatePbufferSurface failed: %s", EglErrorString() );
@@ -916,10 +1002,10 @@ void TimeWarpLocal::WarpThreadInit()
 
 	// Make the context current on the window, so no more makeCurrent calls will be needed
 	LOG( "eglMakeCurrent on %p", eglMainThreadSurface );
-	if (eglMakeCurrent(eglDisplay, eglMainThreadSurface,
-		eglMainThreadSurface, eglWarpContext) == EGL_FALSE)
+	if ( eglMakeCurrent( eglDisplay, eglMainThreadSurface,
+			eglMainThreadSurface, eglWarpContext ) == EGL_FALSE )
 	{
-		FAIL("eglMakeCurrent failed: %s", EglErrorString());
+		FAIL( "eglMakeCurrent failed: %s", EglErrorString() );
 	}
 
 	// Get a jni environment for front buffer setting, SurfaceTexture updating and changing SCHED_FIFO
@@ -1299,21 +1385,25 @@ static void UnbindEyeTextures()
  */
 void TimeWarpLocal::WarpToScreen( const double vsyncBase_, const swapProgram_t & swap )
 {
-	 
 #if defined( OVR_ENABLE_CAPTURE )
 	OVR_CAPTURE_CPU_ZONE( WarpToScreen );
 #endif
 	static double lastReportTime = 0;
-	const double timeNow = floor( ovr_GetTimeInSeconds() );
+	const double timeNow = floor(ovr_GetTimeInSeconds());
+
+	const warpSource_t & latestWarpSource = WarpSources[EyeBufferCount.GetState() % MAX_WARP_SOURCES];
+
 	if ( timeNow > lastReportTime )
 	{
 		LOG( "Warp GPU time: %3.1f ms", LogEyeWarpGpuTime.GetTotalTime() );
+
+		const ovrTimeWarpParms& param = latestWarpSource.WarpParms;
+		LOG("is front buffer %s MinimumVsyncs %d WarpProgram %d WarpOptions %d PreScheduleSeconds %f", Screen.IsFrontBuffer() ? "true" : "false",
+			param.MinimumVsyncs, param.WarpProgram, param.WarpOptions, param.PreScheduleSeconds);
+
 		lastReportTime = timeNow;
 	}
 
-	const warpSource_t & latestWarpSource = WarpSources[EyeBufferCount.GetState()%MAX_WARP_SOURCES];
-	 
-	
 	// switch to sliced rendering
 	if ( latestWarpSource.WarpParms.WarpOptions & SWAP_OPTION_USE_SLICED_WARP )
 	{
@@ -1579,7 +1669,7 @@ void TimeWarpLocal::WarpToScreen( const double vsyncBase_, const swapProgram_t &
 		const float latency = postFinish - justBeforeFinish;
 		if ( latency > 0.008f )
 		{
-			LOG( "Frame %i Eye %i latency %5.3f", (int)vsyncBase, eye, latency );
+			LOG( "WarpToScreen Frame %i Eye %i latency %5.3f", (int)vsyncBase, eye, latency );
 		}
 
 		if ( 0 )
@@ -1614,10 +1704,7 @@ void TimeWarpLocal::WarpToScreen( const double vsyncBase_, const swapProgram_t &
 
 	if ( !Screen.IsFrontBuffer() )
 	{
-		//LOG("Screen.SwapBuffers!");
 		Screen.SwapBuffers();
-
-		//LOG("Screen.SwapBuffers End");
 	}
 }
 
@@ -1910,7 +1997,7 @@ void TimeWarpLocal::WarpToScreenSliced( const double vsyncBase, const swapProgra
 		const float latency = postFinish - justBeforeFinish;
 		if ( latency > 0.008f )
 		{
-			LOG( "Frame %i Eye %i latency %5.3f", (int)vsyncBase, eye, latency );
+			LOG( "WarpToScreenSliced Frame %i Eye %i latency %5.3f", (int)vsyncBase, eye, latency );
 		}
 
 		if ( 0 )
@@ -1955,13 +2042,9 @@ static uint64_t GetNanoSecondsUint64()
 
 void TimeWarpLocal::WarpSwapInternal( const ovrTimeWarpParms & parms )
 {
-
-
 #if defined( OVR_ENABLE_CAPTURE )
 	OVR_CAPTURE_CPU_ZONE( WarpSwapInternal );
 #endif
-
-	 
 
 	if ( gettid() != StartupTid )
 	{

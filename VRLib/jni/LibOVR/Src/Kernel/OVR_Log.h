@@ -89,8 +89,10 @@ class Log
 {
     friend class System;
 public: 
-    Log(unsigned logMask = LogMask_Debug) : LoggingMask(logMask) { }
+	Log(unsigned logMask = LogMask_Debug) : LoggingMask(logMask) { Init(); }
     virtual ~Log();
+
+	void Init();
 
     // Log formating buffer size used by default LogMessageVarg. Longer strings are truncated.
     enum { MaxLogBufferMessageSize = 4096 };

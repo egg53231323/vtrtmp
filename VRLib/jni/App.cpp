@@ -1691,6 +1691,8 @@ void AppLocal::FrameworkButtonProcessing( const VrInput & input )
  * Continuously renders frames when active, checking for commands
  * from the main thread between frames.
  */
+extern float sampleValue[6];
+
 void AppLocal::VrThreadFunction()
 {
 	// Set the name that will show up in systrace
@@ -2074,8 +2076,13 @@ void AppLocal::VrThreadFunction()
 			fp.AlignHoriz = HORIZONTAL_CENTER;
 			fp.Billboard = true;
 			fp.TrackRoll = false;
-			GetWorldFontSurface().DrawTextBillboarded3Df( GetDefaultFont(), fp, FPSPointTracker.GetCurPosition(), 
-					0.8f, Vector4f( 1.0f, 0.0f, 0.0f, 1.0f ), "%.1f fps", LastFrameRate );
+			//GetWorldFontSurface().DrawTextBillboarded3Df( GetDefaultFont(), fp, FPSPointTracker.GetCurPosition(), 
+			//		0.8f, Vector4f( 1.0f, 0.0f, 0.0f, 1.0f ), "%.1f fps", LastFrameRate );
+
+			GetWorldFontSurface().DrawTextBillboarded3Df(GetDefaultFont(), fp, FPSPointTracker.GetCurPosition(),
+				0.8f, Vector4f(1.0f, 0.0f, 0.0f, 1.0f), "(%.4f %.4f %.4f) (%.4f %.4f %.4f) %.1f",
+				sampleValue[0], sampleValue[1], sampleValue[2], sampleValue[3], sampleValue[4], sampleValue[5], LastFrameRate);
+
 			LastFrameTime = currentFrameTime;
 		}
 
@@ -2840,7 +2847,6 @@ bool AppLocal::IsWifiConnected() const
 
 void AppLocal::RecenterYaw( const bool showBlack )
 {
-	LOG( "AppLocal::RecenterYaw" );
 	if ( showBlack )
 	{
 		const ovrTimeWarpParms warpSwapBlackParms = InitTimeWarpParms( WARP_INIT_BLACK );

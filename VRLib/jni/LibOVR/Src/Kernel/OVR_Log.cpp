@@ -26,6 +26,20 @@ namespace OVR {
 
 // Global Log pointer.
 Log* volatile OVR_GlobalLog = 0;
+FILE* pfLog = NULL;
+
+void Log::Init()
+{
+	const char* filename = "/sdcard/MyTest/log.txt";
+	FILE* pf = fopen(filename, "w+");
+	if (pf == NULL) {
+		//LOGE("create log file failed! %s", filename);
+		::exit(1);
+	}
+
+	//LOGI("create log file %s", filename);
+	pfLog = pf;
+}
 
 //-----------------------------------------------------------------------------------
 // ***** Log Implementation
@@ -122,6 +136,10 @@ void Log::DefaultLogOutput(LogMessageType messageType, const char* formattedText
     }
 
 	__android_log_write(logPriority, "OVR", formattedText);
+
+	fprintf(pfLog, "%s\n", formattedText);
+
+	fflush(pfLog);
 
 #else
     fputs(formattedText, stdout);

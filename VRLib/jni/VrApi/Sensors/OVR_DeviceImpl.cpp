@@ -375,8 +375,6 @@ DeviceBase* DeviceManagerImpl::CreateDevice_MgrThread(DeviceCreateDesc* createDe
     // so 'this' must remain valid.
     OVR_ASSERT(createDesc->pLock->pManager);    
 
-	LogText("Pass OVR_ASSERT(createDesc->pLock->pManager)");
-
     Lock::Locker devicesLock(GetLock());
 
     // If device already exists, just AddRef to it.
@@ -389,18 +387,12 @@ DeviceBase* DeviceManagerImpl::CreateDevice_MgrThread(DeviceCreateDesc* createDe
     if (!parent)
         parent = this;
 
-	LogText("Pass  if (!parent) parent = this ");
-
     DeviceBase* device = createDesc->NewDeviceInstance();
     
-	LogText("Pass  DeviceBase* device = createDesc->NewDeviceInstance() ");
-
     if (device)
     {
-		LogText("Pass   if (device)");
         if (device->getDeviceCommon()->Initialize(parent))
         {
-			LogText("Pass  if (device->getDeviceCommon()->Initialize(parent)) ");
            createDesc->pDevice = device;
         }
         else
@@ -411,8 +403,6 @@ DeviceBase* DeviceManagerImpl::CreateDevice_MgrThread(DeviceCreateDesc* createDe
             device = 0;
         }
     }
-
-	LogText("Pass   if (device){...}");
      
     return device;
 }
@@ -475,12 +465,6 @@ Void DeviceManagerImpl::EnumerateAllFactoryDevices()
     for(devDesc = Devices.GetFirst();
         !Devices.IsNull(devDesc);  devDesc = devDesc->pNext)
     {
-    	DeviceInfo info;
-    	bool b=devDesc->GetDeviceInfo(&info);
-    	if(b)
-    	{
-    		LogText("device info:%s",info.ProductName);
-    	}
         devDesc->Enumerated = false;
     }
     

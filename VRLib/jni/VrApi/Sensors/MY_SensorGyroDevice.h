@@ -57,11 +57,7 @@ public:
 class My_ScensorGyroDevice: public SensorDevice, public DeviceCommon,public Android::DeviceManagerThread::Notifier {
 public:
 
-	My_ScensorGyroDevice(DeviceCreateDesc* createDesc, DeviceBase* parent) :
-			SensorDevice(), DeviceCommon(createDesc, this, parent) {
-		lastTimeStamp = -1;
-
-	}
+	My_ScensorGyroDevice(DeviceCreateDesc* createDesc, DeviceBase* parent);
 
 	virtual bool Initialize(DeviceBase* parent);
 	virtual void Shutdown();
@@ -109,7 +105,7 @@ public:
 	virtual bool SetFeatureReport(UByte* data, UInt32 length);
 	virtual bool GetFeatureReport(UByte* data, UInt32 length);
 
-	virtual void OnEvent(int i, int fd){}
+	virtual void OnEvent(int i, int fd);
 
 	//用于通知手机自带Sensor事件
 	virtual void OnASensorEvent(void* pEv);
@@ -123,6 +119,8 @@ protected:
 private:
 	
 	int64_t lastTimeStamp;
+
+	class SensorDeviceImpl* pOvrDevice;
 
 };
 }

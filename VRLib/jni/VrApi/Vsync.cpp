@@ -35,7 +35,7 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
  * 16.66 ms than I would like.
  */
 
-static bool LogVsync = false;
+static bool LogVsync = true;
 // console function for toggling vsync logging on and off
 void SetLogVsync( void * appPtr, const char * cmd )
 {
@@ -53,7 +53,7 @@ extern "C"
 	#if defined(OVR_ENABLE_CAPTURE)
 		OVR::Capture::VSyncTimestamp(frameTimeNanos);
 	#endif
-		if ( LogVsync )
+		//if ( LogVsync )
 		{
 			static long long prevFrameTimeNanos;
 			LOG( "nativeSetVsync: %5.2f ms", ( frameTimeNanos - prevFrameTimeNanos ) * 0.000001 );

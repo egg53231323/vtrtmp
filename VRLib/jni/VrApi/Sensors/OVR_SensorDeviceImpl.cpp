@@ -13,8 +13,23 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
 // HMDDeviceDesc can be created/updated through Sensor carrying DisplayInfo.
 
+#include "Kernel/OVR_Array.h"
 #include "Kernel/OVR_Timer.h"
 #include "Kernel/OVR_Alg.h"
+#include "jni.h"
+
+
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <linux/types.h>
+#include <sys/stat.h>
+#include <sys/poll.h>
+#include <unistd.h>
+#include <errno.h>
+#include <linux/usbdevice_fs.h>
+
+
 
 namespace OVR {
     
@@ -689,8 +704,19 @@ SensorDeviceFactory &SensorDeviceFactory::GetInstance()
 
 void SensorDeviceFactory::EnumerateDevices(EnumerateVisitor& visitor)
 {
-
 	SSSA_LOG_FUNCALL(1);
+	HIDDeviceDesc hidDesc;
+	hidDesc.VendorId = Oculus_VendorId;
+	hidDesc.ProductId = Device_Tracker_ProductId;
+	hidDesc.Path = "mydevicepath";
+
+
+	SensorDeviceCreateDesc myDesc(this, hidDesc);
+	visitor.Visit(myDesc);
+
+	return;
+
+
     class SensorEnumerator : public HIDEnumerateVisitor
     {
         // Assign not supported; suppress MSVC warning.
@@ -764,7 +790,7 @@ bool SensorDeviceFactory::MatchVendorProduct(UInt16 vendorId, UInt16 productId) 
 
 bool SensorDeviceFactory::DetectHIDDevice(DeviceManager* pdevMgr, const HIDDeviceDesc& desc)
 {
-	SSSA_LOG_FUNCALL(1);
+	return false;
     if (MatchVendorProduct(desc.VendorId, desc.ProductId))
     {
         if (desc.ProductId == Sensor_BootLoader)
@@ -819,6 +845,9 @@ bool SensorDeviceCreateDesc::GetDeviceInfo(DeviceInfo* info) const
 //-------------------------------------------------------------------------------------
 // ***** SensorDevice
 
+
+Array<SensorDeviceImpl*>  GSensorDevice;
+
 SensorDeviceImpl::SensorDeviceImpl(SensorDeviceCreateDesc* createDesc)
     : OVR::HIDDeviceImpl<OVR::SensorDevice>(createDesc, 0),
       Coordinates(SensorDevice::Coord_Sensor),
@@ -826,7 +855,8 @@ SensorDeviceImpl::SensorDeviceImpl(SensorDeviceCreateDesc* createDesc)
       NextKeepAliveTickSeconds(0),
       FullTimestamp(0),
       RealTimeDelta(0.0),
-      MaxValidRange(SensorRangeImpl::GetMaxSensorRange()),
+	  MaxValidRange(SensorRangeImpl::GetMaxSensorRange()),
+	  CalibrationTemperature(25.0f),
 	  pCalibration(NULL)
 {
 	SSSA_LOG_FUNCALL(1);
@@ -866,10 +896,17 @@ SensorDeviceImpl::SensorDeviceImpl(SensorDeviceCreateDesc* createDesc)
 		deviceSupportsPhoneTemperatureTable = true;
 	}
 
+	if (GetSensorDeviceType() == DEVICE_TYPE_M3D) {
+		deviceSupportsPhoneTemperatureTable = true;
+	}
+
 	if (deviceSupportsPhoneTemperatureTable)
 	{
 		pCalibration = 	new SensorCalibration(this);
 	}
+	
+	GSensorDevice.PushBack(this);
+	LogText("SensorDeviceImpl constructor %p", this);
 }
 
 SensorDeviceImpl::~SensorDeviceImpl()
@@ -896,6 +933,8 @@ bool SensorDeviceImpl::Initialize(DeviceBase* parent)
     return false;
 }
 
+bool GetM3DSerialNumber(UByte * serial, uint32_t size);
+
 void SensorDeviceImpl::openDevice()
 {
 
@@ -910,6 +949,7 @@ void SensorDeviceImpl::openDevice()
         // Increase the magnetometer range, since the default value is not enough in practice
         CurrentRange.MaxMagneticField = 2.5f;
         setRange(CurrentRange);
+		LogText("sensor range MaxAcceleration %f MaxRotationRate %f", CurrentRange.MaxAcceleration, CurrentRange.MaxRotationRate);
     }
 
 	// Read the currently configured calibration from sensor.
@@ -933,7 +973,8 @@ void SensorDeviceImpl::openDevice()
     {
         displayInfo.Unpack();
         Coordinates = (displayInfo.DistortionType & SensorDisplayInfoImpl::Mask_BaseFmt) ?
-                      Coord_HMD : Coord_Sensor;
+		Coord_HMD : Coord_Sensor;
+		LogText("LensSeparation %f VCenter %f Resolution %hdx%hd", displayInfo.LensSeparation, displayInfo.VCenter, displayInfo.Resolution.H, displayInfo.Resolution.V);
     }
 
     // Read/Apply sensor config.
@@ -972,13 +1013,16 @@ void SensorDeviceImpl::openDevice()
 		SerialReport serial;
 		if (!getSerialReport(&serial))
 		{	
-			LogText("OVR::SensorDeviceImpl::openDevice - failed to get device uuid.\n");
+			if (!GetM3DSerialNumber(serial.SerialNumberValue, sizeof(serial.SerialNumberValue)))
+			{
+				LogText("OVR::SensorDeviceImpl::openDevice - failed to get device uuid.\n");
+			}
 		}
 
 		// Convert to string.
 		for (int i=0; i<SerialReport::SERIAL_NUMBER_SIZE; i++)
 		{
-			str.AppendFormat("%02X", serial.SerialNumberValue[i]);		
+			str.AppendFormat("%c", serial.SerialNumberValue[i]);		
 		}
 #endif
 		
@@ -995,7 +1039,24 @@ void SensorDeviceImpl::closeDeviceOnError()
 }
 
 void SensorDeviceImpl::Shutdown()
-{   
+{
+	Array<SensorDeviceImpl*>::Iterator it = GSensorDevice.Begin();
+	for (; it != GSensorDevice.End(); ++it)
+	{
+		if (*it == this){
+			break;
+		}
+	}
+	if (it == GSensorDevice.End())
+	{
+		LogText("ERRRRRRRROR can not find this when SensorDeviceImpl::Shutdown()!");
+	}
+	else {
+		it.Remove();
+		LogText("remove SensorDeviceImpl %p", this);
+	}
+		
+	
     HIDDeviceImpl<OVR::SensorDevice>::Shutdown();
 
     LogText("OVR::SensorDevice - Closed '%s'\n", getHIDDesc()->Path.ToCStr());
@@ -1016,6 +1077,82 @@ void SensorDeviceImpl::OnInputReport(UByte* pData, UInt32 length)
             onTrackerMessage(&message);
         }
     }
+}
+
+
+
+float DECOM(const UByte * raw, float scale)
+{
+	SInt16 r = raw[0] << 8 | raw[1];
+
+	float v = r * scale;
+
+	return v;
+}
+
+
+template<class T>
+T DecodeData(const uint8_t* data)
+{
+	return (T(data[0]) << 8) | T(data[1]);
+}
+
+//
+void SensorDeviceImpl::OnInputReport2(UByte* pData, UInt32 length)
+{
+	if (length != 35){
+		LogText("SensorDeviceImpl::OnInputReport2 data size error %d", length);
+		return;
+	}
+	
+	TrackerMessage message;
+	memset(&message, 0, sizeof(message));
+
+	message.Type = TrackerMessage_Sensors;
+
+	TrackerSensors& s = message.Sensors;
+	
+	static UInt16 timestmp = 0;
+	s.SampleCount	= 2;
+	s.LastCommandID = 0;
+	s.Temperature	= 0;
+	s.Timestamp		= timestmp;
+	timestmp += 2;
+
+	//UInt16 timestamp_t = DecodeData<UInt16>(pData);
+	pData += 2;
+
+	//GLog.LogInfo("timestamp %hu", sample.timestamp);
+
+	SInt16 temperature = DecodeData<SInt16>(pData);
+	s.Temperature = (SInt16)((temperature / 340.f + 36.53f) * 100.f);
+	pData += 2;
+
+	//GLog.LogInfo("temperature %hd", sample.temperature);
+
+	for (int i = 0; i < 2; i++)
+	{
+		// ¨¢?3¨¬+/-4G ¨º¨º??oculus¨º¦Ì??3?¨°?10000
+		float accScale = (4 * 9.8f * 10000.f) / 32767.f;
+		s.Samples[i].AccelX = (SInt32)DECOM(pData + 0, accScale);
+		s.Samples[i].AccelY = (SInt32)DECOM(pData + 2, accScale);
+		s.Samples[i].AccelZ = (SInt32)DECOM(pData + 4, accScale);
+
+		// ¨¢?3¨¬ +/- 1000 deg/s
+		float gyroScale = (1000.f * Mathf::DegreeToRadFactor * 10000.f) / 32767.f;
+		s.Samples[i].GyroX = (SInt32)DECOM(pData + 6, gyroScale);
+		s.Samples[i].GyroY = (SInt32)DECOM(pData + 8, gyroScale);
+		s.Samples[i].GyroZ = (SInt32)DECOM(pData + 10, gyroScale);
+
+		pData += 12;
+	}
+
+	float magScale = 10000.f * 0.00073f;
+	s.MagX = (SInt16)DECOM(pData, magScale);
+	s.MagY = (SInt16)DECOM(pData, magScale);
+	s.MagZ = (SInt16)DECOM(pData, magScale);
+
+	onTrackerMessage(&message);
 }
 
 double SensorDeviceImpl::OnTicks(double tickSeconds)
@@ -1435,6 +1572,10 @@ bool SensorDeviceImpl::getAllTemperatureReports(Array<Array<TemperatureReport> >
 
 bool SensorDeviceImpl::GetGyroOffsetReport(GyroOffsetReport* data)
 {
+	if (GetSensorDeviceType() == DEVICE_TYPE_M3D) {
+		return false;
+	}
+
     // direct call if we are already on the device manager thread
     if (GetCurrentThreadId() == GetManagerImpl()->GetThreadId())
     {
@@ -1468,6 +1609,7 @@ bool SensorDeviceImpl::getGyroOffsetReport(GyroOffsetReport* data)
 // to be eliminated soon.
 //#define OVR_OLD_TIMING_LOGIC
 
+float sampleValue[6];
 
 void SensorDeviceImpl::onTrackerMessage(TrackerMessage* message)
 {
@@ -1621,10 +1763,18 @@ void SensorDeviceImpl::onTrackerMessage(TrackerMessage* message)
             replaceWithPhoneMag(&(sensors.MagneticField), &(sensors.MagneticBias));
             sensors.Temperature   = s.Temperature * 0.01f;
 
+			sampleValue[0] = sensors.RotationRate.x;
+			sampleValue[1] = sensors.RotationRate.y;
+			sampleValue[2] = sensors.RotationRate.z;
+
 			if (pCalibration != NULL)
 			{
 				pCalibration->Apply(sensors);
 			}
+
+			sampleValue[3] = sensors.RotationRate.x;
+			sampleValue[4] = sensors.RotationRate.y;
+			sampleValue[5] = sensors.RotationRate.z;
 
             HandlerRef.GetHandler()->OnMessage(sensors);
 
@@ -1651,7 +1801,7 @@ void SensorDeviceImpl::onTrackerMessage(TrackerMessage* message)
 
 void SensorDeviceImpl::replaceWithPhoneMag(Vector3f* mag, Vector3f* bias)
 {
-
+	return;
 	Vector3f magPhone;
 	Vector3f biasPhone;
 	pPhoneSensors->GetLatestUncalibratedMagAndBiasValue(&magPhone, &biasPhone);
@@ -1678,6 +1828,10 @@ void SensorDeviceImpl::replaceWithPhoneMag(Vector3f* mag, Vector3f* bias)
 	*bias = resBias;
 }
 
+
+
+
 } // namespace OVR
+
 
 

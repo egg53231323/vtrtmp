@@ -900,7 +900,7 @@ OCULUS_EXPORT void UnityRenderEvent( int eventID )
 		return;
 	}
 
-	LOG( "UnityRenderEvent %i", eventID );
+//	LOG( "UnityRenderEvent %i", eventID );
 
 	switch( eventID )
 	{
