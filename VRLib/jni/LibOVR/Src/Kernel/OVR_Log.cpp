@@ -30,7 +30,7 @@ FILE* pfLog = NULL;
 
 void Log::Init()
 {
-	const char* filename = "/sdcard/MyTest/log.txt";
+	const char* filename = "/sdcard/FancyTech/log.txt";
 	FILE* pf = fopen(filename, "w+");
 	if (pf == NULL) {
 		//LOGE("create log file failed! %s", filename);

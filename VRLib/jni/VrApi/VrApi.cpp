@@ -104,7 +104,7 @@ void ovr_ShutdownSensors()
 
 bool ovr_InitializeInternal()
 {
-	SSSA_LOG_FUNCALL(1);
+	LOG("	ovr_InitializeInternal begin");
     // We must set up the system for the plugin to work
     if ( !OVR::System::IsInitialized() )
 	{
@@ -113,6 +113,7 @@ bool ovr_InitializeInternal()
 
 	ovr_InitSensors();
 
+	LOG("	ovr_InitializeInternal end");
     return true;
 }
 
@@ -609,7 +610,7 @@ void ovr_OnLoad( JavaVM * JavaVm_ )
 // plugin event to avoid starting the device manager.
 void ovr_Init()
 {
-	LOG( "ovr_Init" );
+	LOG("ovr_Init begin");
 
 	// initialize Oculus code
 	ovr_InitializeInternal();
@@ -625,6 +626,8 @@ void ovr_Init()
 	ovr_InitBuildStrings( jni );
 
 	OVR::SystemActivities_InitEventQueues();
+
+	LOG("ovr_Init end");
 }
 
 // This sends an explicit intent to the package/classname with the command and URI in the intent.
