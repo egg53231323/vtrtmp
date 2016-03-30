@@ -21,6 +21,7 @@ namespace OVR {
 // Initializes System core, installing allocator.
 void System::Init(Log* log, Allocator *palloc)
 {    
+	//LogText("		System::Init begin");
     if (!Allocator::GetInstance())
     {
         Log::SetGlobalLog(log);
@@ -34,6 +35,7 @@ void System::Init(Log* log, Allocator *palloc)
     {
         OVR_DEBUG_LOG(("System::Init failed - duplicate call."));
     }
+    //LogText("		System::Init end");
 }
 
 void System::Destroy()

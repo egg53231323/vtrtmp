@@ -104,14 +104,19 @@ void ovr_ShutdownSensors()
 
 bool ovr_InitializeInternal()
 {
+
 	LOG("	ovr_InitializeInternal begin");
     // We must set up the system for the plugin to work
-    if ( !OVR::System::IsInitialized() )
-	{
-    	OVR::System::Init( OVR::Log::ConfigureDefaultLog( OVR::LogMask_All ) );
-	}
+//    if ( !OVR::System::IsInitialized() )
+//	{
+//    	LOG("		OVR::System::Init begin");
+//    	OVR::System::Init( OVR::Log::ConfigureDefaultLog( OVR::LogMask_All ) );
+//    	LOG("		OVR::System::Init end");
+//	}
 
+    LOG("		ovr_InitSensors begin");
 	ovr_InitSensors();
+	LOG("		ovr_InitSensors end");
 
 	LOG("	ovr_InitializeInternal end");
     return true;
@@ -513,6 +518,11 @@ double ovr_GetTimeInSeconds()
 void ovr_OnLoad( JavaVM * JavaVm_ )
 {
 	LOG( "ovr_OnLoad()" );
+	// We must set up the system for the plugin to work
+	if ( !OVR::System::IsInitialized() )
+	{
+	   	OVR::System::Init( OVR::Log::ConfigureDefaultLog( OVR::LogMask_All ) );
+	}
 
 	if ( JavaVm_ == NULL )
 	{
@@ -614,7 +624,6 @@ void ovr_Init()
 
 	// initialize Oculus code
 	ovr_InitializeInternal();
-	SSSA_LOG_FUNCALL(1);
 	JNIEnv * jni;
 	const jint rtn = VrLibJavaVM->AttachCurrentThread( &jni, 0 );
 	if ( rtn != JNI_OK )

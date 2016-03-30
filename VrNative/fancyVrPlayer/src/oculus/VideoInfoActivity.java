@@ -48,7 +48,7 @@ public class VideoInfoActivity extends Activity{
 				mp4_info.putInt("screen", sel_screen_id);//screen方式
 				mp4_info.putInt("tc", sel_tc_id);//tc方式
 				intent.putExtras(mp4_info);
-				startActivityForResult(intent,12345);
+				startActivity(intent);
 			}
 		});
 	}
