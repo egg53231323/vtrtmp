@@ -23,7 +23,7 @@ const double GazeTimeTimeout = 4;
 
 extern "C" {
 
-jlong Java_oculus_MainActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
+jlong Java_oculus_VrUsbActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
 		jstring fromPackageName, jstring commandString, jstring uriString )
 {
 	LOG( "nativeSetAppInterface" );
