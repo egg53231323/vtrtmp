@@ -22,35 +22,43 @@ public class VideoInfoActivity extends Activity{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_videoinfo);
 		//得到视频的文件名
-		Bundle bundle=getIntent().getExtras();
-		final String mp4_fn=bundle.getString("filename");
-		Log.d(TAG,"Get String from bundle "+ mp4_fn);
-		TextView tv=(TextView)findViewById(R.id.textView1);
-		tv.setText("movie: "+mp4_fn);
-		
-		
-		//set up play button 
-		Button playBtn=(Button)findViewById(R.id.button_play);
-		playBtn.setOnClickListener(new View.OnClickListener() 
-		{
-			public void onClick(View v)
-			{
-				
-				int sel_tc_id=GetTcMode();
-				int sel_screen_id = GetScreenMode();
-				//启动观看影片的activity
-				Intent intent=new Intent(VideoInfoActivity.this,movieViewActivity.class);
-				Bundle mp4_info=new Bundle();
-
-				//mp4_info.putSerializable("class", this.getClass());
-				mp4_info.putString("filename", mp4_fn); //文件名
-				mp4_info.putFloat("ratio", 0.75f); //宽高比
-				mp4_info.putInt("screen", sel_screen_id);//screen方式
-				mp4_info.putInt("tc", sel_tc_id);//tc方式
-				intent.putExtras(mp4_info);
-				startActivity(intent);
+		try{
+			Bundle bundle=getIntent().getExtras();
+			final String mp4_fn=bundle.getString("filename");
+			if(mp4_fn!=null){
+				Log.d(TAG,"Get String from bundle "+ mp4_fn);
+				TextView tv=(TextView)findViewById(R.id.textView1);
+				tv.setText("movie: "+mp4_fn);			
 			}
-		});
+			//set up play button 
+			Button playBtn=(Button)findViewById(R.id.button_play);
+			playBtn.setOnClickListener(new View.OnClickListener() 
+			{
+				public void onClick(View v)
+				{
+					
+					int sel_tc_id=GetTcMode();
+					int sel_screen_id = GetScreenMode();
+					//启动观看影片的activity
+					Intent intent=new Intent(VideoInfoActivity.this,movieViewActivity.class);
+					Bundle mp4_info=new Bundle();
+
+					//mp4_info.putSerializable("class", this.getClass());
+					mp4_info.putString("filename", mp4_fn); //文件名
+					mp4_info.putFloat("ratio", 0.75f); //宽高比
+					mp4_info.putInt("screen", sel_screen_id);//screen方式
+					mp4_info.putInt("tc", sel_tc_id);//tc方式
+					intent.putExtras(mp4_info);
+					startActivity(intent);
+				}
+			});
+		}catch(Exception e){
+			
+		}
+
+		
+		
+
 	}
 	
 	int GetScreenMode()
