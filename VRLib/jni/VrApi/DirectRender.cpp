@@ -65,6 +65,8 @@ void VrSurfaceManager::Init( JNIEnv * jni_ )
 		LOG( "Found VrSurfaceManager API: %p", surfaceClass );
 		env->DeleteLocalRef( lc );
 	}
+	else
+		LOG( "Class Not Found: android/app/VRSurfaceManager");
 
 	// Clear NoClassDefFoundError, if thrown
 	if ( env->ExceptionOccurred() )
