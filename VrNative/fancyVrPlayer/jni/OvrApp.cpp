@@ -31,6 +31,7 @@ extern "C" {
 static jclass	GlobalActivityClass;
 static SphereScreenConfig cfg1;
 static QuadScreenConfig cfg2;
+static ThreatreConfig cfg3;
 jlong Java_oculus_movieViewActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
 		jstring fromPackageName, jstring commandString, jstring uriString )
 {
@@ -96,12 +97,15 @@ void Java_oculus_movieViewActivity_nativeSetScreenTcMode( JNIEnv *jni, jclass cl
 
 	cfg1.tc_mode=(MOVIE_MAPPING)tcmode;
 	cfg2.tc_mode=(MOVIE_MAPPING)tcmode;
+	cfg3.tc_mode=(MOVIE_MAPPING)tcmode;
 
 	LOG( "screenmode=%d,tcmode=%d", screenmode,tcmode);
 	if(screenmode==SG_SPHERE)
 		panoVids->SetUseSphereScreen(cfg1);
-	else
+	else if(screenmode==SG_QUAD)
 		panoVids->SetUseQuadScreen(cfg2);
+	else
+		panoVids->SetUseTheatre(cfg3);
 }
 
 
@@ -119,6 +123,7 @@ OvrApp::OvrApp()
 
 	m_pQuadScreen=new MoiveScreenQuad();
 	m_pSphereScreen=new MoiveScreenSphere();
+	m_pTheatre=new MoiveTheatre();
 	m_pCurrentScreen=(MovieScreen*)m_pSphereScreen;
 }
 
@@ -134,6 +139,8 @@ void OvrApp::UninstallShaderAndScreen()
 
 	delete m_pQuadScreen;
 	delete m_pSphereScreen;
+	delete m_pTheatre;
+
 	m_pCurrentScreen=0;
 
 	m_ShaderMng->CleanUpShaders();
@@ -147,7 +154,7 @@ void OvrApp::InitShaderAndScreen() {
 
 	m_pQuadScreen->Init();
 	m_pSphereScreen->Init();
-
+	m_pTheatre->Init();
 }
 
 void OvrApp::SetUseSphereScreen(const SphereScreenConfig& cfg)
@@ -162,7 +169,11 @@ void OvrApp::SetUseQuadScreen(const QuadScreenConfig& cfg)
 	m_pCurrentScreen=(MovieScreen*)m_pQuadScreen;
 	m_pQuadScreen->SetConfig(cfg);
 }
-
+void OvrApp::SetUseTheatre(const ThreatreConfig& cfg)
+{
+	m_pCurrentScreen=(MovieScreen*)m_pTheatre;
+	m_pTheatre->SetConfig(cfg);
+}
 void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSON, const char * launchIntentURI )
 {
 	// This is called by the VR thread, not the java UI thread.
@@ -187,7 +198,7 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 	VrViewParms viewParms = app->GetVrViewParms();
 	viewParms.EyeHeight = 0.0f;
 	app->SetVrViewParms( viewParms );
-	app->SetShowFPS(false);
+	app->SetShowFPS(true);
 
 	//播放影片需要关闭time wrap
 	ovrModeParms param=app->GetVrModeParms();
@@ -197,7 +208,6 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 	// Optimize for 16 bit depth in a modest theater size
 	Scene.Znear = 0.1f;
 	Scene.Zfar = 2000.0f;
-
 
 }
 

@@ -40,7 +40,7 @@ public:
 
 	void				SetUseSphereScreen(const SphereScreenConfig& cfg);
 	void				SetUseQuadScreen(const QuadScreenConfig& cfg);
-
+	void				SetUseTheatre(const ThreatreConfig& cfg);
 	// video vars
 	String				VideoName;
 	SurfaceTexture	* 	MovieTexture;
@@ -65,6 +65,8 @@ public:
 	MovieScreen*		m_pCurrentScreen;
 	MoiveScreenSphere*	m_pSphereScreen;
 	MoiveScreenQuad*	m_pQuadScreen;
+	MoiveTheatre*		m_pTheatre;
+
 	ShaderManager*		m_ShaderMng;
 private:
 	void UninstallShaderAndScreen();

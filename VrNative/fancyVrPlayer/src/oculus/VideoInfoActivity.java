@@ -69,8 +69,10 @@ public class VideoInfoActivity extends Activity{
 		String txt=(String) rb.getText();
 		if(txt.equals("ÇòÌå"))
 			return VR_MOVIE_PLAY_MODE.SCREEN_SPHERE;
-		else
+		else if(txt.equals("Ä»²¼"))
 			return VR_MOVIE_PLAY_MODE.SCREEN_QUAD;
+		else
+			return VR_MOVIE_PLAY_MODE.SCREEN_THREATRE;
 	}
 
 	int GetTcMode()

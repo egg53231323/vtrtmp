@@ -3,6 +3,7 @@
 	<name>fancyVrPlayer</name>
 	<comment></comment>
 	<projects>
+		<project>VRLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

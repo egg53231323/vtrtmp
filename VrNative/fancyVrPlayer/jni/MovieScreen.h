@@ -14,7 +14,8 @@
 enum SCREEN_GEOMETRY
 {
 	SG_SPHERE=0, 	//球体 用于播放全景影片
-	SG_QUAD		//面片 用于播放非全景影片
+	SG_QUAD,		//面片 用于播放非全景影片
+	SG_THEATRE		//剧院模式
 };
 
 //贴图映射的方式
@@ -50,6 +51,22 @@ struct QuadScreenConfig
 	float distance_to_eye;
 	MOVIE_MAPPING tc_mode;
 };
+
+struct ThreatreConfig //暂时先用quad screen 的config ，以后会新增特有的属性
+{
+	ThreatreConfig()
+		{
+			width_scale=1.5;
+			height_scale=0.75;
+			distance_to_eye=-1.5;
+			tc_mode=MM_WHOLE;
+		}
+		float width_scale;
+		float height_scale;
+		float distance_to_eye;
+		MOVIE_MAPPING tc_mode;
+};
+
 namespace OVR{
 	class SurfaceTexture;
 	class OvrSceneView;
@@ -92,4 +109,20 @@ private:
 	OVR::GlGeometry	Globe;
 	QuadScreenConfig m_cfg;
 };
+
+
+class MoiveTheatre:public MovieScreen
+{
+public :
+	MoiveTheatre();
+	~MoiveTheatre();
+	virtual void Init();
+	virtual void Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees);
+	void SetConfig(const ThreatreConfig& cfg);
+private:
+	OVR::GlGeometry eye_quad;
+	OVR::GlGeometry	Globe;
+	ThreatreConfig m_cfg;
+};
+
 #endif /* MOVIESCREEN_H_ */

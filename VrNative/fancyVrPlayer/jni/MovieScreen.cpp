@@ -124,10 +124,9 @@ void MoiveScreenQuad::Init()
 void MoiveScreenQuad::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)
 {
 	SSSA_LOG_FUNCALL(1);
-	const float eyeOffset = (eye ? -1 : 1) * 0.5f
-			* Scene->ViewParms.InterpupillaryDistance;
+	const float eyeOffset = (eye ? -1 : 1) * 0.5f * Scene->ViewParms.InterpupillaryDistance;
 	const Matrix4f view = Matrix4f::Translation(eyeOffset, 0.0f, 0.0f); //固定不动
-	//const Matrix4f view = Scene.ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
+	//const Matrix4f view = Scene->ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
 	const Matrix4f proj = Scene->ProjectionMatrixForEye(0, fovDegrees);
 
 	//先绘制背景，用一个黑色的球体
@@ -157,6 +156,62 @@ void MoiveScreenQuad::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* Movie
 	eye_quad.Draw();
 }
 void MoiveScreenQuad::SetConfig(const QuadScreenConfig& cfg)
+{
+	m_cfg=cfg;
+}
+
+
+
+MoiveTheatre::MoiveTheatre()
+{
+
+}
+MoiveTheatre::~MoiveTheatre()
+{
+	eye_quad.Free();
+	Globe.Free();
+}
+void MoiveTheatre::Init()
+{
+	eye_quad = OVR::BuildTesselatedQuad(1,1);
+	Globe = OVR::BuildGlobe();
+}
+void MoiveTheatre::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)
+{
+	SSSA_LOG_FUNCALL(1);
+	//const float eyeOffset = (eye ? -1 : 1) * 0.5f * Scene->ViewParms.InterpupillaryDistance;
+
+	//Videos have center as initial focal point - need to rotate 90 degrees to start there
+	const Matrix4f view = Scene->ViewMatrixForEye(eye) * Matrix4f::RotationY(M_PI / 2);
+	const Matrix4f proj = Scene->ProjectionMatrixForEye(0, fovDegrees);
+
+	//先绘制背景，用一个黑色的球体
+	glDisable (GL_DEPTH_TEST);
+	glDisable (GL_CULL_FACE);
+	GlProgram* prog = pMng->GetShaderByID(BlackProgram);
+	glUseProgram(prog->program);
+	glUniformMatrix4fv(prog->uMvp, 1, GL_FALSE,	(proj * view).Transposed().M[0]);
+	Globe.Draw();
+
+	//draw quad
+	prog = pMng->GetShaderByID(PanoramaProgram);
+	glUseProgram(prog->program);
+	glUniform4f(prog->uColor, 1.0f, 1.0f, 1.0f, 1.0f);
+
+	Matrix4f world = Matrix4f::Identity();
+	//注意，x轴朝右，y轴朝上，z轴朝向屏幕外侧，这里把绘制的片往远处挪了1.5个单位
+	world = world.Scaling(m_cfg.width_scale, m_cfg.height_scale, 1)
+			* world.Translation(0, 0, -1.5f) * world;
+
+	glUniformMatrix4fv(prog->uTexm, 1, GL_FALSE,
+			TexmForVideo(eye,m_cfg.tc_mode).Transposed().M[0]);
+	glUniformMatrix4fv(prog->uMvp, 1, GL_FALSE,
+			(proj * view * world).Transposed().M[0]);
+	glUniform4f(prog->uEye, (float) eye, 0.0f, 0.0f, 0.0f);
+
+	eye_quad.Draw();
+}
+void MoiveTheatre::SetConfig(const ThreatreConfig& cfg)
 {
 	m_cfg=cfg;
 }
