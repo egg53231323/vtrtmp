@@ -17,6 +17,7 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
 #include "Android/GlUtils.h"
 #include "Android/LogUtils.h"
+#include "kernel/OVR_Log.h"
 
 PFNEGLLOCKSURFACEKHRPROC	eglLockSurfaceKHR_;
 PFNEGLUNLOCKSURFACEKHRPROC	eglUnlockSurfaceKHR_;
@@ -50,7 +51,8 @@ void VrSurfaceManager::Init( JNIEnv * jni_ )
 {
 	if ( jni_ == NULL )
 	{
-		LOG( "VrSurfaceManager::Init - Invalid jni" );
+		LogText( "VrSurfaceManager::Init - Invalid jni" );
+
 		return;
 	}
 
@@ -62,7 +64,7 @@ void VrSurfaceManager::Init( JNIEnv * jni_ )
 	if ( lc != NULL )
 	{
 		surfaceClass = (jclass)env->NewGlobalRef( lc );
-		LOG( "Found VrSurfaceManager API: %p", surfaceClass );
+		LogText( "Found VrSurfaceManager API: %p", surfaceClass );
 		env->DeleteLocalRef( lc );
 	}
 
@@ -70,7 +72,7 @@ void VrSurfaceManager::Init( JNIEnv * jni_ )
 	if ( env->ExceptionOccurred() )
 	{
 		env->ExceptionClear();
-		LOG( "Clearing JNI Exceptions" );
+		LogText( "Clearing JNI Exceptions" );
 	}
 
 	// Look up the Java Front Buffer IF method IDs
@@ -85,7 +87,7 @@ void VrSurfaceManager::Init( JNIEnv * jni_ )
 
 void VrSurfaceManager::Shutdown()
 {
-	LOG( "VrSurfaceManager::Shutdown" );
+	LogText( "VrSurfaceManager::Shutdown" );
 
 	if ( surfaceClass != NULL )
 	{
@@ -105,7 +107,7 @@ bool VrSurfaceManager::SetFrontBuffer( const EGLSurface surface_, const bool set
 		// Test the Java IF first (present on Note 4)
 		if ( setFrontBufferID != NULL )
 		{
-			LOG( "Calling java method");
+			LogText( "Calling java method setFrontBufferID");
 			// Use the Java Front Buffer IF
 			env->CallStaticVoidMethod( surfaceClass, setFrontBufferID, (int)surface_, set );
 
@@ -126,7 +128,7 @@ bool VrSurfaceManager::SetFrontBuffer( const EGLSurface surface_, const bool set
 			// Catch Permission denied exception
 			if ( env->ExceptionOccurred() )
 			{
-				WARN( "Exception: egl_GVR_FrontBuffer failed" );
+				LogText( "WARN:Exception: egl_GVR_FrontBuffer failed" );
 				env->ExceptionClear();
 				gvrFrontbuffer = false;
 			}
@@ -144,21 +146,21 @@ bool VrSurfaceManager::SetFrontBuffer( const EGLSurface surface_, const bool set
 			egl_GVR_FrontBuffer = (PFN_GVR_FrontBuffer)eglGetProcAddress( "egl_GVR_FrontBuffer" );
 			if ( egl_GVR_FrontBuffer == NULL )
 			{
-				LOG( "Not found: egl_GVR_FrontBuffer" );
+				LogText( "Not found: egl_GVR_FrontBuffer" );
 				gvrFrontbuffer = false;
 			}
 			else
 			{
-				LOG( "Found: egl_GVR_FrontBuffer" );
+				LogText( "Found: egl_GVR_FrontBuffer" );
 				void * ret = egl_GVR_FrontBuffer( surface_ );
 				if ( ret )
 				{
-					LOG( "egl_GVR_FrontBuffer succeeded" );
+					LogText( "egl_GVR_FrontBuffer succeeded" );
 					gvrFrontbuffer = true;
 				}
 				else
 				{
-					WARN( "egl_GVR_FrontBuffer failed" );
+					LogText( "WARN : egl_GVR_FrontBuffer failed" );
 					gvrFrontbuffer = false;
 				}
 			}
@@ -167,7 +169,7 @@ bool VrSurfaceManager::SetFrontBuffer( const EGLSurface surface_, const bool set
 	else
 	{
 		// ignore it
-		LOG( "Not found: egl_GVR_FrontBuffer" );
+		LogText( "WARN : Not found: egl_GVR_FrontBuffer" );
 		gvrFrontbuffer = false;
 	}
 
@@ -181,7 +183,7 @@ void * VrSurfaceManager::GetFrontBufferAddress( const EGLSurface surface )
 		return (void *)env->CallStaticIntMethod( surfaceClass, getFrontBufferAddressID, (int)surface );
 	}
 
-	LOG( "getFrontBufferAddress not found" );
+	LogText( "getFrontBufferAddress not found" );
 	return NULL;
 }
 
@@ -194,7 +196,7 @@ void * VrSurfaceManager::GetSurfaceBufferAddress( const EGLSurface surface, int 
 		return (void *)env->CallStaticIntMethod( surfaceClass, getSurfaceBufferAddressID, (int)surface, attribs_array, pitch );
 	}
 
-	LOG( "getSurfaceBufferAddress not found" );
+	LogText( "getSurfaceBufferAddress not found" );
 	return NULL;
 }
 
@@ -204,7 +206,7 @@ void * VrSurfaceManager::GetClientBufferAddress( const EGLSurface surface )
 	{
 		// Use the Java Front Buffer IF
 		void * ret = (void *)env->CallStaticIntMethod( surfaceClass, getClientBufferAddressID, (int)surface );
-		LOG( "getClientBufferAddress(%p) = %p", eglGetCurrentSurface( EGL_DRAW ), ret );
+		LogText( "getClientBufferAddress(%p) = %p", eglGetCurrentSurface( EGL_DRAW ), ret );
 		return ret;
 	}
 	else
@@ -215,11 +217,11 @@ void * VrSurfaceManager::GetClientBufferAddress( const EGLSurface surface )
 				(PFN_EGL_SEC_getClientBufferForFrontBuffer)eglGetProcAddress( "EGL_SEC_getClientBufferForFrontBuffer" );
 		if ( EGL_SEC_getClientBufferForFrontBuffer == NULL )
 		{
-			LOG( "Not found: EGL_SEC_getClientBufferForFrontBuffer" );
+			LogText( "Not found: EGL_SEC_getClientBufferForFrontBuffer" );
 			return NULL;
 		}
 		void * ret = EGL_SEC_getClientBufferForFrontBuffer( eglGetCurrentSurface( EGL_DRAW ) );
-		LOG( "EGL_SEC_getClientBufferForFrontBuffer(%p) = %p", eglGetCurrentSurface( EGL_DRAW ), ret );
+		LogText( "EGL_SEC_getClientBufferForFrontBuffer(%p) = %p", eglGetCurrentSurface( EGL_DRAW ), ret );
 		return ret;
 	}
 
@@ -266,7 +268,7 @@ static void ExerciseFrontBuffer()
 
 void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, int buildVersionSDK_ )
 {
-	LOG( "%p DirectRender::InitForCurrentSurface(%s)", this, wantFrontBuffer_ ? "true" : "false" );
+	LogText( "%p DirectRender::InitForCurrentSurface(%s)", this, wantFrontBuffer_ ? "true" : "false" );
 
 	wantFrontBuffer = wantFrontBuffer_;
 
@@ -284,7 +286,7 @@ void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, i
 	if ( ( buildVersionSDK_ > KITKAT_WATCH ) ||	// if the SDK is Lollipop or higher
 		 ( gpuType & GPU_TYPE_MALI ) != 0 )		// or the GPU is Mali
 	{
-		LOG( "Performing an initial swapbuffers for Mali and/or Android-L" );
+		LogText( "Performing an initial swapbuffers for Mali and/or Android-L" );
 		// When we use the protected Trust Zone framebuffer there is trash in the
 		// swap chain, so clear it out.
 		glClearColor( 0, 0, 0, 0 );
@@ -296,22 +298,22 @@ void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, i
 	// Get the surface size.
 	eglQuerySurface( display, windowSurface, EGL_WIDTH, &width );
 	eglQuerySurface( display, windowSurface, EGL_HEIGHT, &height );
-	LOG( "surface size: %i x %i", width, height );
+	LogText( "surface size: %i x %i", width, height );
 
 	if ( !wantFrontBuffer_ )
 	{
-		LOG( "Running without front buffer");
+		LogText( "Running without front buffer");
 	}
 	else
 	{
 		surfaceMgr.Init( jni );
 
 		gvrFrontbufferExtension = surfaceMgr.SetFrontBuffer( windowSurface, true );
-		LOG ( "gvrFrontbufferExtension = %s", ( gvrFrontbufferExtension ) ? "TRUE" : "FALSE" );
+		LogText ( "gvrFrontbufferExtension = %s", ( gvrFrontbufferExtension ) ? "TRUE" : "FALSE" );
 
 		if ( ( gpuType & GPU_TYPE_MALI ) != 0 )
 		{
-			LOG( "Mali GPU" );
+			LogText( "Mali GPU" );
 			tilerControl = FB_MALI;
 		}
 		else if ( ( gpuType & GPU_TYPE_ADRENO ) != 0 )
@@ -320,24 +322,24 @@ void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, i
 			EGLint configID;
 			if ( !eglQueryContext( display, context, EGL_CONFIG_ID, &configID ) )
 			{
-				FAIL( "eglQueryContext EGL_CONFIG_ID failed" );
+				LogText( "FAIL:eglQueryContext EGL_CONFIG_ID failed" );
 			}
 			EGLConfig eglConfig = EglConfigForConfigID( display, configID );
 			if ( eglConfig == NULL )
 			{
-				FAIL( "EglConfigForConfigID failed" );
+				LogText( "FAIL:EglConfigForConfigID failed" );
 			}
 			EGLint samples = 0;
 			eglGetConfigAttrib( display, eglConfig, EGL_SAMPLES, &samples );
 
 			if ( gpuType == GPU_TYPE_ADRENO_330 )
 			{
-				LOG( "Adreno 330 GPU" );
+				LogText( "Adreno 330 GPU" );
 				tilerControl = FB_TILED_RENDERING;
 			}
 			else
 			{
-				LOG( "Adreno GPU" );
+				LogText( "Adreno GPU" );
 
 				// NOTE: On KitKat, only tiled render mode will continue to work
 				// with multisamples set on the frame buffer (at a performance
@@ -347,9 +349,9 @@ void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, i
 				{
 					// TODO: We may want to make this a FATAL ERROR.
 
-					WARN( "**********************************************" );
-					WARN( "ERROR: frame buffer uses MSAA - turn off MSAA!" );
-					WARN( "**********************************************" );
+					LogText( "**********************************************" );
+					LogText( "ERROR: frame buffer uses MSAA - turn off MSAA!" );
+					LogText( "**********************************************" );
 					tilerControl = FB_TILED_RENDERING;
 				}
 				else
@@ -372,7 +374,7 @@ void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, i
 					// This causes a gl error on current drivers, but will be
 					// needed for the new driver.
 					GL_CheckErrors( "Before enabling Binning Control" );
-					LOG( "Enable GL_BINNING_CONTROL_HINT_QCOM - may cause a GL_ERROR on current driver" );
+					LogText( "Enable GL_BINNING_CONTROL_HINT_QCOM - may cause a GL_ERROR on current driver" );
 					glEnable( GL_BINNING_CONTROL_HINT_QCOM );
 					GL_CheckErrors( "Expected on current driver" );
 	#else
@@ -389,7 +391,7 @@ void DirectRender::InitForCurrentSurface( JNIEnv * jni, bool wantFrontBuffer_, i
 
 void DirectRender::Shutdown()
 {
-	LOG( "%p DirectRender::Shutdown", this );
+	LogText( "%p DirectRender::Shutdown", this );
 	if ( wantFrontBuffer )
 	{
 		if ( windowSurface != EGL_NO_SURFACE )
