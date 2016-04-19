@@ -10,7 +10,6 @@ Copyright   :   Copyright 2012 Oculus VR, LCC. All Rights reserved.
 *************************************************************************************/
 
 #include "VrScene.h"
-
 static const char * versionString = "VrScene v.0.4.2\n"__DATE__"\n"__TIME__;
 
 extern "C"
@@ -63,6 +62,7 @@ void VrScene::OneTimeInit( const char * fromPackageName, const char * launchInte
 	{
 		LoadScene( launchIntentURI );
 	}
+	app->SetShowFPS(true);
 }
 
 void VrScene::OneTimeShutdown()
@@ -163,6 +163,9 @@ Matrix4f VrScene::Frame( const VrFrame vrFrame )
 {
 	// Get the current vrParms for the buffer resolution.
 	const EyeParms vrParms = app->GetEyeParms();
+
+	//让模型每帧都移动起来 看下是不是平滑
+	//Scene.WorldModel.State.modelMatrix.M[1][3] += sin( 2 * vrFrame.PoseState.TimeInSeconds );;
 
 	// Player movement
 	Scene.Frame( app->GetVrViewParms(), vrFrame, app->GetSwapParms().ExternalVelocity );
