@@ -61,6 +61,8 @@ AudioManager.OnAudioFocusChangeListener {
 	public static native void nativeVideoCompletion( long appPtr );
 	public static native void nativeSetVideoSize( long appPtr, int width, int height );
 	public static native void nativeSetScreenTcMode( long appPtr, int screenmode,int tcmode );
+	public static native void nativeUnloadAppInterface( long appPtr );
+	
     //public native void PushData(byte[] buffer, int length);	
     public native void setupUsbDevice(int fd, int deviceType, boolean startThread);
 	static
@@ -112,14 +114,7 @@ AudioManager.OnAudioFocusChangeListener {
         ScanUsb();
 		startMovie( fn );//play movie
     }
-    @Override
-    protected void onStop()
-    {
-    	Log.d(TAG,"Movie Wnd onStop");
-    	unregisterReceiver(mUsbReceiver);
-    	super.onStop();
-    	
-    }
+
 	//掃描當前usb端口是否有設備連接著，如果有也需要申請權限
 	protected void ScanUsb(){
 		UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -381,9 +376,11 @@ AudioManager.OnAudioFocusChangeListener {
 	@Override
 	protected void onDestroy() {	
 		Log.d(TAG, "onDestroy");
-		
-		// Abandon audio focus if we still hold it
 		releaseAudioFocus();
+    	unregisterReceiver(mUsbReceiver);
+    	nativeUnloadAppInterface(appPtr);
+		// Abandon audio focus if we still hold it
+		
 
 		super.onDestroy();	
 	}

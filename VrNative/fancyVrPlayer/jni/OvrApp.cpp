@@ -32,6 +32,17 @@ static jclass	GlobalActivityClass;
 static SphereScreenConfig cfg1;
 static QuadScreenConfig cfg2;
 static ThreatreConfig cfg3;
+
+void Java_oculus_movieViewActivity_nativeUnloadAppInterface( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
+	SSSA_LOG_FUNCALL(1);
+	LOG( "nativeUnloadAppInterface" );
+
+	OvrApp * panoVids = ( OvrApp * )( ( ( App * )interfacePtr )->GetAppInterface() );
+	delete panoVids;
+
+}
+
+
 jlong Java_oculus_movieViewActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
 		jstring fromPackageName, jstring commandString, jstring uriString )
 {
@@ -130,6 +141,7 @@ OvrApp::OvrApp()
 OvrApp::~OvrApp()
 {
 	SSSA_LOG_FUNCALL(1);
+	app=0;
 	//nativeDestroy();
 }
 
