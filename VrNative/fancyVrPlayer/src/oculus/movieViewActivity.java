@@ -62,7 +62,7 @@ AudioManager.OnAudioFocusChangeListener {
 	public static native void nativeSetVideoSize( long appPtr, int width, int height );
 	public static native void nativeSetScreenTcMode( long appPtr, int screenmode,int tcmode );
 	public static native void nativeUnloadAppInterface( long appPtr );
-	
+	public static native void nativeInitVrLib( long appPtr );
     //public native void PushData(byte[] buffer, int length);	
     public native void setupUsbDevice(int fd, int deviceType, boolean startThread);
 	static
@@ -75,6 +75,7 @@ AudioManager.OnAudioFocusChangeListener {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG,"Movie Wnd onCreate");
+        nativeInitVrLib(appPtr);
 		Intent intent = getIntent();
 
 		String commandString = VrLib.getCommandStringFromIntent( intent );
@@ -112,6 +113,8 @@ AudioManager.OnAudioFocusChangeListener {
         registerReceiver(mUsbReceiver, filter);
         
         ScanUsb();
+        
+        
 		startMovie( fn );//play movie
     }
 
@@ -378,7 +381,7 @@ AudioManager.OnAudioFocusChangeListener {
 		Log.d(TAG, "onDestroy");
 		releaseAudioFocus();
     	unregisterReceiver(mUsbReceiver);
-    	nativeUnloadAppInterface(appPtr);
+    	//nativeUnloadAppInterface(appPtr);
 		// Abandon audio focus if we still hold it
 		
 

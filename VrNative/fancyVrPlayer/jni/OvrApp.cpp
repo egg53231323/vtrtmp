@@ -33,11 +33,20 @@ static SphereScreenConfig cfg1;
 static QuadScreenConfig cfg2;
 static ThreatreConfig cfg3;
 
+void Java_oculus_movieViewActivity_nativeInitVrLib( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
+	SSSA_LOG_FUNCALL(1);
+	LOG( "nativeInitVrLib" );
+	//ovr_OnLoad( vm );
+	ovr_Init();
+
+}
+
 void Java_oculus_movieViewActivity_nativeUnloadAppInterface( JNIEnv *jni, jclass clazz, jlong interfacePtr ) {
 	SSSA_LOG_FUNCALL(1);
 	LOG( "nativeUnloadAppInterface" );
 
 	OvrApp * panoVids = ( OvrApp * )( ( ( App * )interfacePtr )->GetAppInterface() );
+	ovr_ExitActivity(panoVids->app->GetOvrMobile(),EXIT_TYPE_EXIT);
 	delete panoVids;
 
 }
@@ -141,6 +150,9 @@ OvrApp::OvrApp()
 OvrApp::~OvrApp()
 {
 	SSSA_LOG_FUNCALL(1);
+
+	//ovr_LeaveVrMode(app->GetOvrMobile());
+	//ovr_ExitActivity(app->GetOvrMobile(),EXIT_TYPE_FINISH);
 	app=0;
 	//nativeDestroy();
 }
@@ -282,16 +294,17 @@ void OvrApp::Command( const char * msg )
 
 bool OvrApp::OnKeyEvent( const int keyCode, const KeyState::eKeyEventType eventType )
 {
-	SSSA_LOG_FUNCALL(1);
-	if (keyCode == AKEYCODE_BACK)
-	{
-		StopVideo();
-		//return true;
-	}
-	else
-	{
-		LOG( "Unknown Key Event:keyCode=%d",keyCode );
-	}
+//	SSSA_LOG_FUNCALL(1);
+//	if (keyCode == AKEYCODE_BACK)
+//	{
+//		StopVideo();
+//		//ovr_ExitActivity(app->GetOvrMobile(),EXIT_TYPE_FINISH);
+//		//return true;
+//	}
+//	else
+//	{
+//		LOG( "Unknown Key Event:keyCode=%d",keyCode );
+//	}
 
 	return false;
 }

@@ -331,7 +331,7 @@ JNIEXPORT jint JNI_OnLoad( JavaVM * vm, void * reserved )
 	ovr_OnLoad( vm );
 
 	// Start up the Oculus device manager
-	ovr_Init();
+	//ovr_Init();
 
 	return JNI_VERSION_1_6;
 }
