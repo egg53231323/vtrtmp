@@ -13,7 +13,8 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 #include "OVR_Std.h"
 #include <stdarg.h>
 #include <stdio.h>
-
+#include <unistd.h>
+#include <sys/stat.h>
 #if defined(OVR_OS_WIN32)
 #include <windows.h>
 #elif defined(OVR_OS_ANDROID)
@@ -30,6 +31,8 @@ FILE* pfLog = NULL;
 
 void Log::Init()
 {
+	if(access("/sdcard/FancyTech/",0)!=0) //0 ±Ì æ¥Ê‘⁄
+		mkdir("/sdcard/FancyTech/",S_IRWXU);
 	const char* filename = "/sdcard/FancyTech/log.txt";
 	FILE* pf = fopen(filename, "w+");
 	if (pf == NULL) {
