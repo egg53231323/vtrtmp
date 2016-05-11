@@ -288,6 +288,16 @@ namespace OVR {
 							}
 						}
 
+		JNIEXPORT void JNICALL Java_com_oculus_oculus360videossdk_VrUsbActivity_setupUsbDevice(JNIEnv * env, jobject thiz, jint fd, jint _deviceType, jboolean startThread)
+				{
+					devicefd = fd;
+					deviceType = _deviceType;
+
+					if (startThread) {
+						LogText("deviceThread.Create()!!! %d", fd);
+						deviceThread.Create();
+					}
+				}
 		JNIEXPORT void JNICALL Java_oculus_movieViewActivity_setupUsbDevice(JNIEnv * env, jobject thiz, jint fd, jint _deviceType, jboolean startThread)
 				{
 					devicefd = fd;

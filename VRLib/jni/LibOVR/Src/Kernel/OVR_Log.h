@@ -182,7 +182,8 @@ void LogError(const char* fmt, ...) OVR_LOG_VAARG_ATTRIBUTE(1,2);
 		void BuildIntentString(int intentval);
 		OVR::StringBuffer m_text;
 	};
-#define SSSA_LOG_FUNCALL(a) OVR::sssa_log_obj_ex t##a(__FILE__,__LINE__,__PRETTY_FUNCTION__) ;
+#define SSSA_LOG_FUNCALL(a) ((void)0)
+	//OVR::sssa_log_obj_ex t##a(__FILE__,__LINE__,__PRETTY_FUNCTION__) ;
 //#define SSSA_LOG_FUNCALL2(a) 	sssa_log_obj t##a(__FILE__,__LINE__,__FUNCTION__) ;
 	
 	#ifdef OVR_BUILD_DEBUG
