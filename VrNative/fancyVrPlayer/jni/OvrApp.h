@@ -41,6 +41,8 @@ public:
 	void				SetUseSphereScreen(const SphereScreenConfig& cfg);
 	void				SetUseQuadScreen(const QuadScreenConfig& cfg);
 	void				SetUseTheatre(const ThreatreConfig& cfg);
+
+	void				ConfigureVrMode( ovrModeParms & modeParms );
 	// video vars
 	String				VideoName;
 	SurfaceTexture	* 	MovieTexture;

@@ -235,6 +235,24 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 
 }
 
+void OvrApp::ConfigureVrMode( ovrModeParms & modeParms )
+{
+	// We need very little CPU for pano browsing, but a fair amount of GPU.
+	// The CPU clock should ramp up above the minimum when necessary.
+	//LOG( "ConfigureClocks: Oculus360Videos only needs minimal clocks" );
+	modeParms.CpuLevel = 1;
+	modeParms.GpuLevel = 0;
+
+	// When the app is throttled, go to the platform UI and display a
+	// dismissable warning. On return to the app, force 30hz timewarp.
+	modeParms.AllowPowerSave = true;
+
+	// All geometry is blended, so save power with no MSAA
+	app->GetVrParms().multisamples = 1;
+}
+
+
+
 void OvrApp::OneTimeShutdown()
 {
 	// Free GL resources
