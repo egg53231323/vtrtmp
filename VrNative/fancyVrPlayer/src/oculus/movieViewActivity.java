@@ -75,7 +75,7 @@ AudioManager.OnAudioFocusChangeListener {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG,"Movie Wnd onCreate");
-        nativeInitVrLib(appPtr);
+        nativeInitVrLib(0);
 		Intent intent = getIntent();
 
 		String commandString = VrLib.getCommandStringFromIntent( intent );

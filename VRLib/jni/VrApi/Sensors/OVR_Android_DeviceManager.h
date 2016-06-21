@@ -16,9 +16,27 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 
 #include <unistd.h>
 #include <sys/poll.h>
+#include <android/sensor.h>
+#include <android/looper.h>
+
+namespace OVR {
 
 
-namespace OVR { namespace Android {
+enum {
+		SENSOR_TYPE_ACCELEROMETER = 1,
+		SENSOR_TYPE_MAGNETIC_FIELD = 2,
+		SENSOR_TYPE_ORIENTATION = 3,
+		SENSOR_TYPE_GYROSCOPE = 4,
+		SENSOR_TYPE_LIGHT = 5,
+		SENSOR_TYPE_TEMPERATURE = 7,
+		SENSOR_TYPE_PROXIMITY = 8,
+		SENSOR_TYPE_GRAVITY = 9,
+		SENSOR_TYPE_ROTATION_VECTOR = 11,
+		SENSOR_TYPE_GAME_ROTATION_VECTOR = 15,
+
+	};
+
+namespace Android {
 
 class DeviceManagerThread;
 
@@ -97,6 +115,10 @@ private:
     
     bool threadInitialized() { return CommandFd[0] != 0; }
 
+	void InitInnerSensor();
+
+	void ReadInnerSensorData();
+
     pid_t                   DeviceManagerTid;	// needed to set SCHED_FIFO
 
     // pipe used to signal commands
@@ -109,7 +131,20 @@ private:
     volatile bool           Suspend;
 
     // Ticks notifiers - used for time-dependent events such as keep-alive.
+	Array<Notifier*>        ASensorNotifiers;
+	Array<int>				ASensorPoolTypes;
+    // Ticks notifiers - used for time-dependent events such as keep-alive.
     Array<Notifier*>        TicksNotifiers;
+
+
+    ASensorEventQueue* 		eventQueue;
+	Array<ASensorEvent>		SensorEventList;
+	Vector3f				LastAccel;
+	Vector3f				LastGyro;
+	Vector3f				LastMag;
+	float					LastTemperature;
+	int64_t					LastTimeStamp;
+
 };
 
 }} // namespace Android::OVR

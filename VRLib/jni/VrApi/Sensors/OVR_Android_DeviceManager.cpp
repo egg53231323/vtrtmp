@@ -21,15 +21,69 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 #include "Kernel/OVR_Std.h"
 #include "Kernel/OVR_Log.h"
 #include "Android/LogUtils.h"
+#include "Kernel/OVR_Alg.h"
 #include <jni.h>
 
 jobject gRiftconnection;
 
+
+#define EVENT_IDEN 23
+
 namespace OVR { 
 
 	int ReadSensorDataFromUsb();
+	int ReadInnerSensorData();
+	extern Array<SensorDeviceImpl*>  GSensorDevice;
 
 	namespace Android {
+
+	struct SensorObj
+	{
+		ASensorRef	sensor;
+		int			id;
+		const char*	name;
+		int			type;
+		float		resolution;
+		int			minDelay;
+
+		SensorObj(ASensorRef ref, int _id)
+		{
+			sensor = ref;
+			id = _id;
+			name = ASensor_getName(sensor);
+			type = ASensor_getType(sensor);
+			resolution = ASensor_getResolution(sensor);
+			minDelay = ASensor_getMinDelay(sensor);
+		}
+
+		void Enable(ASensorEventQueue* evQueue)
+		{
+			int succ =  ASensorEventQueue_enableSensor(evQueue, sensor);
+			if (succ < 0)
+			{
+				LogText("DeviceManagerThread - enable Sensor %s Failed !!!!\n", name);
+			}
+			else{
+				ASensorEventQueue_setEventRate(evQueue, sensor, minDelay);
+			}
+		}
+
+		void Disable(ASensorEventQueue* evQueue)
+		{
+			int succ = ASensorEventQueue_disableSensor(evQueue, sensor);
+
+			if (succ < 0)
+			{
+				LogText("DeviceManagerThread - disable Sensor %s Failed !!!!\n", name);
+			}
+		}
+
+		void PrintInfo()
+		{
+			LogText("ASensor: name = %s , type = %d , res = %f , delay = %d \n", name , type , resolution , minDelay);
+		}
+
+	};
 
 //-------------------------------------------------------------------------------------
 // **** Android::DeviceManager
@@ -47,8 +101,10 @@ bool DeviceManager::Initialize(DeviceBase*)
 {
 	SSSA_LOG_FUNCALL(1);
     if (!DeviceManagerImpl::Initialize(0))
+    {
+    	LOG("OVR::DeviceManager - initialized failed.\n");
         return false;
-
+    }
     LOG("DeviceManager::Initialize CheckPoint 1");
     pThread = *new DeviceManagerThread();
     if (!pThread || !pThread->Start())
@@ -207,10 +263,49 @@ bool DeviceManagerThread::RemoveSelectFd(Notifier* notify, int fd)
     return false;
 }
 
-static int event_count = 0;
-static double event_time = 0;
 
 
+
+void DeviceManagerThread::InitInnerSensor()
+{
+	SSSA_LOG_FUNCALL(1);
+	ASensorManager* sensorManager = NULL;
+	eventQueue = NULL;
+	ALooper* looper = NULL;
+	sensorManager = ASensorManager_getInstance();
+	Array<SensorObj> sensors;
+	//获取手机上全部Sensor
+	ASensorList sensorList = NULL;
+	int numSensor = ASensorManager_getSensorList(sensorManager, &sensorList);
+	for (int i = 0; i < numSensor; i++) {
+		int type = ASensor_getType(sensorList[i]);
+		if (type == SENSOR_TYPE_ACCELEROMETER || type == SENSOR_TYPE_GYROSCOPE
+				|| type == SENSOR_TYPE_MAGNETIC_FIELD
+				|| type == SENSOR_TYPE_TEMPERATURE) {
+			sensors.PushBack(SensorObj(sensorList[i], i));
+		}
+	}
+	//打印全部Sensor信息
+	for (UPInt i = 0; i < sensors.GetSize(); i++) {
+		sensors[i].PrintInfo();
+	}
+	looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+	looper = ALooper_forThread();
+	if (looper == NULL) {
+		LogText("Failed to create looper!");
+	}
+	eventQueue = ASensorManager_createEventQueue(sensorManager, looper,
+			EVENT_IDEN, NULL, NULL);
+	OVR_UNUSED(looper);
+	OVR_UNUSED(eventQueue);
+
+	//启动所有Sensor
+	for (UPInt i = 0; i < sensors.GetSize(); i++)
+	{
+		sensors[i].Enable(eventQueue);
+	}
+
+}
 
 int DeviceManagerThread::Run()
 {
@@ -224,6 +319,7 @@ int DeviceManagerThread::Run()
     // needed to set SCHED_FIFO
     DeviceManagerTid = gettid();
 
+	InitInnerSensor();
     // Signal to the parent thread that initialization has finished.
     StartupEvent.SetEvent();
 
@@ -237,102 +333,13 @@ int DeviceManagerThread::Run()
         }
         else
 		{
-			ReadSensorDataFromUsb();
-			continue;
-
-            bool commands = false;
-            do
-            {
-                int waitMs = INT_MAX;
-
-                // If devices have time-dependent logic registered, get the longest wait
-                // allowed based on current ticks.
-                if (!TicksNotifiers.IsEmpty())
-                {
-                    double timeSeconds = Timer::GetSeconds();
-                    int    waitAllowed;
-
-                    for (UPInt j = 0; j < TicksNotifiers.GetSize(); j++)
-                    {
-                        waitAllowed = (int)(TicksNotifiers[j]->OnTicks(timeSeconds) * Timer::MsPerSecond);
-                        if (waitAllowed < (int)waitMs)
-                        {
-                            waitMs = waitAllowed;
-                        }
-                    }
-                }
-
-                nfds_t nfds = PollFds.GetSize();
-                if (Suspend)
-                {
-                    // only poll for commands when device polling is suspended
-                    nfds = Alg::Min(nfds, (nfds_t)1);
-                    // wait no more than 100 milliseconds to allow polling of the devices to resume
-                    // within 100 milliseconds to avoid any noticeable loss of head tracking
-                    waitMs = Alg::Min(waitMs, 100);
-                }
-
-                // wait until there is data available on one of the devices or the timeout expires
-                int n = poll(&PollFds[0], nfds, waitMs);
-
-                if (n > 0)
-                {
-                    // Iterate backwards through the list so the ordering will not be
-                    // affected if the called object gets removed during the callback
-                    // Also, the HID data streams are located toward the back of the list
-                    // and servicing them first will allow a disconnect to be handled
-                    // and cleaned directly at the device first instead of the general HID monitor
-                    for (int i = nfds - 1; i >= 0; i--)
-                    {
-                    	const short revents = PollFds[i].revents;
-
-                    	// If there was an error or hangup then we continue, the read will fail, and we'll close it.
-                    	if (revents & (POLLIN | POLLERR | POLLHUP))
-                        {
-                            if ( revents & POLLERR )
-                            {
-                                LogText( "DeviceManagerThread - poll error event %d (Tid=%d)\n", PollFds[i].fd, GetThreadTid() );
-                            }
-                            if (FdNotifiers[i])
-                            {
-                                event_count++;
-                                if ( event_count >= 500 )
-                                {
-                                    const double current_time = Timer::GetSeconds();
-                                    const int eventHz = (int)( event_count / ( current_time - event_time ) + 0.5 );
-                                    LogText( "DeviceManagerThread - event %d (%dHz) (Tid=%d) (time=%f)\n", PollFds[i].fd, eventHz, GetThreadTid(), current_time );
-                                    event_count = 0;
-                                    event_time = current_time;
-                                }
-
-                                FdNotifiers[i]->OnEvent(i, PollFds[i].fd);
-                            }
-                            else if (i == 0) // command
-                            {
-                                char dummy[128];
-                                read(PollFds[i].fd, dummy, 128);
-                                commands = true;
-                            }
-                        }
-
-                        if (revents != 0)
-                        {
-                            n--;
-                            if (n == 0)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    if ( waitMs > 1 && !Suspend )
-                    {
-                        LogText( "DeviceManagerThread - poll(fds,%d,%d) = %d (Tid=%d)\n", nfds, waitMs, n, GetThreadTid() );
-                    }
-                }
-            } while (PollFds.GetSize() > 0 && !commands);
+			if(ReadSensorDataFromUsb()>0)
+				continue;
+			else
+			{
+				//从内置陀螺仪拿数据
+				ReadInnerSensorData();
+			}
         }
     }
 
@@ -340,6 +347,89 @@ int DeviceManagerThread::Run()
     return 0;
 }
 
+
+void DeviceManagerThread::ReadInnerSensorData()
+{
+	int ident;
+	int events;
+	struct android_poll_source* source;
+
+	if ((ident = ALooper_pollAll(20, NULL, &events, (void**)&source)) >= 0)
+	{
+		if (ident != EVENT_IDEN){
+			LogText( "ReadInnerSensorData ident != EVENT_IDEN");
+			return;
+		}
+
+		LogText( "7777");
+		ASensorEvent event;
+		while (ASensorEventQueue_getEvents((ASensorEventQueue*)eventQueue, &event, 1) > 0)
+		{
+			SensorEventList.PushBack(event);
+		}
+
+		LogText( "6666");
+		//int64_t currTimeStamp = 0x7fffffffffffffff;
+		for (UPInt i = 0; i < SensorEventList.GetSize(); i++)
+		{
+			ASensorEvent ev = SensorEventList.At(i);
+			if (ev.type == SENSOR_TYPE_ACCELEROMETER)
+			{
+				LastAccel.x = ev.vector.x;
+				LastAccel.y = ev.vector.y;
+				LastAccel.z = ev.vector.z;
+			}
+			else if (ev.type == SENSOR_TYPE_MAGNETIC_FIELD)
+			{
+				LastMag.x = ev.vector.x;
+				LastMag.y = ev.vector.y;
+				LastMag.z = ev.vector.z;
+			}
+			else if (ev.type == SENSOR_TYPE_GYROSCOPE)
+			{
+				LastGyro.x = ev.vector.x;
+				LastGyro.y = ev.vector.y;
+				LastGyro.z = ev.vector.z;
+			}
+			else if (ev.type == SENSOR_TYPE_TEMPERATURE)
+			{
+				LastTemperature = ev.temperature;
+			}
+
+			int64_t timeDelta = ev.timestamp - LastTimeStamp;
+			LastTimeStamp = ev.timestamp;
+
+			ASensorMessage amsg;
+			amsg.accel = LastAccel;
+			amsg.gyro = LastGyro;
+			amsg.mag = LastMag;
+			amsg.temperature = LastTemperature;
+			amsg.timestamp = LastTimeStamp;
+
+
+			if (GSensorDevice.GetSize() > 0)	{
+
+				LogText( "5555");
+							SensorDeviceImpl* device = GSensorDevice.Back();
+							//device->OnTicks(timeSeconds);
+							MessageBodyFrame msg(device);
+							int timeDeltaTicks = (int)(timeDelta / 1000000);
+
+							ASensorMessage* pMsg = &amsg;
+							msg.AbsoluteTimeSeconds = OVR::Timer::GetSeconds();
+							msg.RotationRate = Vector3f(-pMsg->gyro.y, pMsg->gyro.x, pMsg->gyro.z);
+							msg.Acceleration = Vector3f(-pMsg->accel.y, pMsg->accel.x,pMsg->accel.z);
+							msg.MagneticField = pMsg->mag;
+							msg.Temperature = pMsg->temperature;
+							msg.TimeDelta = (float)timeDeltaTicks / 1000.0f;;
+							device->onTrackerInnerSensorMsg(msg);
+						}
+		}
+
+		SensorEventList.Clear();
+	}
+
+}
 bool DeviceManagerThread::AddTicksNotifier(Notifier* notify)
 {
 	SSSA_LOG_FUNCALL(1);

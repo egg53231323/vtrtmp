@@ -1,4 +1,4 @@
-package oculus;
+package com.oculus.oculus360videossdk;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,19 +38,13 @@ public abstract class VrUsbActivity extends VrActivity {
 	//native method
 	public static native long nativeSetAppInterface( VrActivity act, String fromPackageNameString, String commandString, String uriString );
 	public native void setupUsbDevice(int fd, int deviceType, boolean startThread);
-	public static native void nativeInitVrLib( long appPtr );
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Intent intent = getIntent();
-		String commandString = VrLib.getCommandStringFromIntent( intent );
-		String fromPackageNameString = VrLib.getPackageStringFromIntent( intent );
-		String uriString = VrLib.getUriStringFromIntent( intent );
 
-		nativeInitVrLib(0);
-		appPtr = nativeSetAppInterface( this, fromPackageNameString, commandString, uriString );
 		//InitUsbDevice();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Get_USB_PERMISSION_Str());

@@ -242,6 +242,7 @@ public:
     // Hack to create HMD device from sensor display info.
     static void EnumerateHMDFromSensorDisplayInfo(const SensorDisplayInfoImpl& displayInfo, 
                                                   DeviceFactory::EnumerateVisitor& visitor);
+    void    onTrackerInnerSensorMsg(MessageBodyFrame& msg);
 protected:
 
     void openDevice();

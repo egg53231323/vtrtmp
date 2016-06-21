@@ -84,7 +84,7 @@ void MoiveScreenSphere::Init()
 }
 void MoiveScreenSphere::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)
 {
-	SSSA_LOG_FUNCALL(1);
+	//SSSA_LOG_FUNCALL(1);
 	const Matrix4f view =
 			(m_cfg.tc_mode == MM_WHOLE) ?
 					Scene->ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : // Videos have center as initial focal point - need to rotate 90 degrees to start there
@@ -123,7 +123,7 @@ void MoiveScreenQuad::Init()
 }
 void MoiveScreenQuad::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)
 {
-	SSSA_LOG_FUNCALL(1);
+	//SSSA_LOG_FUNCALL(1);
 	const float eyeOffset = (eye ? -1 : 1) * 0.5f * Scene->ViewParms.InterpupillaryDistance;
 	const Matrix4f view = Matrix4f::Translation(eyeOffset, 0.0f, 0.0f); //¹Ì¶¨²»¶¯
 	//const Matrix4f view = Scene->ViewMatrixForEye(0);//VideoMode == 0 ? Scene.ViewMatrixForEye(0) * Matrix4f::RotationY(M_PI / 2) : Scene.ViewMatrixForEye(0) /** Matrix4f::RotationY( M_PI /2 )*/;
@@ -178,7 +178,7 @@ void MoiveTheatre::Init()
 }
 void MoiveTheatre::Render(OVR::OvrSceneView* Scene,OVR::SurfaceTexture* MovieTexture,ShaderManager* pMng,int eye,float fovDegrees)
 {
-	SSSA_LOG_FUNCALL(1);
+	//SSSA_LOG_FUNCALL(1);
 	//const float eyeOffset = (eye ? -1 : 1) * 0.5f * Scene->ViewParms.InterpupillaryDistance;
 
 	//Videos have center as initial focal point - need to rotate 90 degrees to start there

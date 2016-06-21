@@ -14,7 +14,8 @@
 #include "Kernel/OVR_Timer.h"
 #include "Android/LogUtils.h"
 #include <jni.h>
-
+#include <android/sensor.h>
+#include <android/looper.h>
 
 namespace OVR {
 
@@ -88,6 +89,8 @@ namespace OVR {
 	int ReadSensorDataFromUsb()
 	{
 		if (devicefd < 0) {
+
+			//LogText("when read sensor from usb,devicefd=null");
 			return 0;
 		}
 		
@@ -106,6 +109,7 @@ namespace OVR {
 			return -1;
 		}
 
+		LogText("ioctl IOCTL_USBFS_BULK error r = %d errno %d", r, errno);
 		double timeSeconds = Timer::GetSeconds();
 
 		count++;

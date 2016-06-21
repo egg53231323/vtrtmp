@@ -1798,7 +1798,14 @@ void SensorDeviceImpl::onTrackerMessage(TrackerMessage* message)
         LastTemperature   = s.Temperature * 0.01f;
     }
 }
-
+void    SensorDeviceImpl::onTrackerInnerSensorMsg(MessageBodyFrame& msg)
+{
+	//SSSA_LOG_FUNCALL(1);
+    if (HandlerRef.GetHandler())
+     {
+         HandlerRef.GetHandler()->OnMessage(msg);
+     }
+}
 void SensorDeviceImpl::replaceWithPhoneMag(Vector3f* mag, Vector3f* bias)
 {
 	return;

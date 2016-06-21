@@ -381,7 +381,7 @@ void OvrApp::StopVideo()
 
 Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 {
-	SSSA_LOG_FUNCALL(1);
+	//SSSA_LOG_FUNCALL(1);
 	const Matrix4f mvp = Scene.DrawEyeView( eye, fovDegrees );
 	if(MovieTexture)
 	{
@@ -400,7 +400,7 @@ Matrix4f OvrApp::DrawEyeView( const int eye, const float fovDegrees )
 
 Matrix4f OvrApp::Frame(const VrFrame vrFrame)
 {
-	SSSA_LOG_FUNCALL(1);
+	//SSSA_LOG_FUNCALL(1);
 	// Disallow player foot movement, but we still want the head model
 	// movement for the swipe view.
 	VrFrame vrFrameWithoutMove = vrFrame;

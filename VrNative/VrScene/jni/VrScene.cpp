@@ -15,6 +15,13 @@ static const char * versionString = "VrScene v.0.4.2\n"__DATE__"\n"__TIME__;
 extern "C"
 {
 
+void Java_com_oculusvr_vrscene_MainActivity_nativeInitVrLib( JNIEnv *jni, jclass clazz, jlong interfacePtr )
+{
+	SSSA_LOG_FUNCALL(1);
+	LOG( "nativeInitVrLib" );
+	ovr_Init();
+}
+
 long Java_com_oculusvr_vrscene_MainActivity_nativeSetAppInterface( JNIEnv *jni, jclass clazz, jobject activity,
 	jstring fromPackageName, jstring commandString, jstring uriString )
 {

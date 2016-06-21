@@ -47,7 +47,8 @@ public class MainActivity extends VrActivity {
 	}
 
 	public static native long nativeSetAppInterface( VrActivity act, String fromPackageNameString, String commandString, String uriString );
-
+	public static native void nativeInitVrLib( long appPtr );
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.d( TAG, "onCreate" );
@@ -58,6 +59,7 @@ public class MainActivity extends VrActivity {
 		String fromPackageNameString = VrLib.getPackageStringFromIntent( intent );
 		String uriString = VrLib.getUriStringFromIntent( intent );
 
+		nativeInitVrLib(0);
 		appPtr = nativeSetAppInterface( this, fromPackageNameString, commandString, uriString );
 
 		//InitUsbDevice();

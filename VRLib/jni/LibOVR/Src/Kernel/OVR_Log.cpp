@@ -207,7 +207,7 @@ OVR_LOG_FUNCTION_IMPL(Assert)
 		char buff[ 512 ];
 
 
-		OVR_sprintf( buff, 512, "sssa LOG: file=%s,line=%d,fuc=%s", filename,line, funcname);
+		OVR_sprintf( buff, 512, "sssa LOG: fuc=%s", funcname);
 		m_text = buff;
 		LogText("%s, begin", m_text.ToCStr());
 	}

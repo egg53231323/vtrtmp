@@ -23,6 +23,13 @@ const double GazeTimeTimeout = 4;
 
 extern "C" {
 
+void Java_oculus_VrUsbActivity_nativeInitVrLib( JNIEnv *jni, jclass clazz, jlong interfacePtr )
+{
+	SSSA_LOG_FUNCALL(1);
+	LOG( "nativeInitVrLib" );
+	ovr_Init();
+}
+
 jlong Java_oculus_VrUsbActivity_nativeSetAppInterface( JNIEnv * jni, jclass clazz, jobject activity,
 		jstring fromPackageName, jstring commandString, jstring uriString )
 {

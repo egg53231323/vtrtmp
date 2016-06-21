@@ -46,6 +46,7 @@ float OvrHmdYaw;
 void ovr_InitSensors()
 {
 	SSSA_LOG_FUNCALL(1);
+	LOG("ovr_InitSensors");
 #if 0
 	if ( OvrHmdState != NULL )
 	{
@@ -333,6 +334,7 @@ JNIEXPORT jint JNI_OnLoad( JavaVM * vm, void * reserved )
 	// Start up the Oculus device manager
 	//ovr_Init();
 
+	LOG( "JNI_OnLoad¡¡End" );
 	return JNI_VERSION_1_6;
 }
 

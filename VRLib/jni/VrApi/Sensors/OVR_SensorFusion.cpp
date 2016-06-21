@@ -157,12 +157,13 @@ void SensorFusion::RecenterYaw()
 
 void SensorFusion::handleMessage(const MessageBodyFrame& msg)
 {
+
     if (msg.Type != Message_BodyFrame || !IsMotionTrackingEnabled())
         return;
  
-
     if (msg.Acceleration == Vector3f::ZERO)
     	return;
+
 
     // Put the sensor readings into convenient local variables
     Vector3f gyro(msg.RotationRate);

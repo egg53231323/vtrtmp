@@ -15,9 +15,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+
+
 public class MainActivity extends VrUsbActivity {
 	public static final String TAG = "TestUI";
-
+	
 
 	/** Load jni .so on initialization */
 	static {
