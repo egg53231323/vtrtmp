@@ -31,17 +31,28 @@ import android.hardware.usb.UsbManager;
 import com.oculusvr.vrlib.VrActivity;
 import com.oculusvr.vrlib.VrLib;
 
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IMediaPlayer.OnBufferingUpdateListener;
+import tv.danmaku.ijk.media.player.IMediaPlayer.OnCompletionListener;
+import tv.danmaku.ijk.media.player.IMediaPlayer.OnErrorListener;
+import tv.danmaku.ijk.media.player.IMediaPlayer.OnInfoListener;
+import tv.danmaku.ijk.media.player.IMediaPlayer.OnPreparedListener;
+import tv.danmaku.ijk.media.player.IMediaPlayer.OnSeekCompleteListener;
+import tv.danmaku.ijk.media.player.IMediaPlayer.OnVideoSizeChangedListener;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+
 public class movieViewActivity extends VrActivity implements SurfaceHolder.Callback,
 android.graphics.SurfaceTexture.OnFrameAvailableListener,
-MediaPlayer.OnVideoSizeChangedListener,
-MediaPlayer.OnCompletionListener,
-MediaPlayer.OnErrorListener,
+IMediaPlayer.OnVideoSizeChangedListener,
+IMediaPlayer.OnCompletionListener,
+IMediaPlayer.OnErrorListener,
+IMediaPlayer.OnPreparedListener,
 AudioManager.OnAudioFocusChangeListener {
 	public static final String TAG = "FancyTech";
-
+	
 	SurfaceTexture movieTexture = null;
 	Surface movieSurface = null;
-	MediaPlayer mediaPlayer = null;	
+	IMediaPlayer mediaPlayer = null;	
 	AudioManager audioManager = null;
 	int screenMode=VR_MOVIE_PLAY_MODE.SCREEN_SPHERE;
 	int tcMode=VR_TC_MODE.MM_WHOLE;
@@ -73,7 +84,7 @@ AudioManager.OnAudioFocusChangeListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        
         Log.d(TAG,"Movie Wnd onCreate");
         nativeInitVrLib(0);
 		Intent intent = getIntent();
@@ -394,14 +405,13 @@ AudioManager.OnAudioFocusChangeListener {
 //		super.OnStop();	
 //	}
 	// --> MediaPlayer.OnErrorListener START
-	public boolean onError( MediaPlayer mp, int what, int extra ) {
+	public boolean onError( IMediaPlayer mp, int what, int extra ) {
 		Log.e( TAG, "MediaPlayer.OnErrorListener - what : " + what + ", extra : " + extra );
 		return false;
 	}
 	
 	// <-- MediaPlayer.OnErrorListener END
-	
-	public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+	public void onVideoSizeChanged(IMediaPlayer mp, int width, int height, int sar_num, int sar_den) {
 		Log.v(TAG, String.format("onVideoSizeChanged: %dx%d", width, height));
 		if ( width == 0 || height == 0 )
 		{
@@ -412,8 +422,12 @@ AudioManager.OnAudioFocusChangeListener {
 			nativeSetVideoSize(appPtr, width, height);
 		}
 	}
-
-	public void onCompletion(MediaPlayer mp) {
+	
+	public void onPrepared(IMediaPlayer mp) {
+		// TODO Auto-generated method stub
+	}
+	
+	public void onCompletion(IMediaPlayer mp) {
 		Log.v(TAG, String.format("onCompletion"));
 		nativeVideoCompletion(appPtr);
 	}
@@ -491,7 +505,7 @@ AudioManager.OnAudioFocusChangeListener {
 				Log.v(TAG, "MediaPlayer.create");
 
 				synchronized (this) {
-					mediaPlayer = new MediaPlayer();
+					mediaPlayer = new IjkMediaPlayer();
 				}
 				mediaPlayer.setOnVideoSizeChangedListener(this);
 				mediaPlayer.setOnCompletionListener(this);
@@ -503,13 +517,9 @@ AudioManager.OnAudioFocusChangeListener {
 				} catch (IOException t) {
 					Log.e(TAG, "mediaPlayer.setDataSource failed");
 				}
-
-				try {
-					Log.v(TAG, "mediaPlayer.prepare");
-					mediaPlayer.prepare();
-				} catch (IOException t) {
-					Log.e(TAG, "mediaPlayer.prepare failed:" + t.getMessage());
-				}
+				
+				mediaPlayer.prepareAsync();
+				
 				Log.v(TAG, "mediaPlayer.start");
 
 				// If this movie has a saved position, seek there before starting
@@ -524,7 +534,7 @@ AudioManager.OnAudioFocusChangeListener {
 					}
 				}
 
-				mediaPlayer.setLooping(false);
+				//mediaPlayer.setLooping(false);
 
 				try {
 					mediaPlayer.start();

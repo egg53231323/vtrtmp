@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.app.Activity;
@@ -34,6 +35,8 @@ public class MainActivity extends Activity{
 	public static final String TAG = "FancyTech";
 	private ListView lv;
 	private Button button_scan;
+	private Button button_play_URL;
+	private EditText editText_URL;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +78,22 @@ public class MainActivity extends Activity{
 			}
 		});
 
+		button_play_URL=(Button)findViewById(R.id.button_URL);
+		button_play_URL.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				String txt=editText_URL.getText().toString();
+				Log.d(TAG,txt);
+				Toast.makeText(getApplicationContext(), "pos="+txt,Toast.LENGTH_SHORT).show();
+				//启动另一个activity
+				Intent intent=new Intent(MainActivity.this,VideoInfoActivity.class);
+				Bundle mp4_info=new Bundle();
+				mp4_info.putString("filename", txt);
+				intent.putExtras(mp4_info);
+				startActivity(intent);
+			}
+		});
+		editText_URL=(EditText)findViewById(R.id.editText_URL);
     }
 
     //“启动任务执行的输入参数”、“后台任务执行的进度”、“后台计算结果的类型”
