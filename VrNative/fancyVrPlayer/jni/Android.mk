@@ -16,3 +16,18 @@ include $(BUILD_SHARED_LIBRARY)
 
 # native activities need this, regular java projects don't
 # $(call import-module,android/native_app_glue)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libijkffmpeg
+LOCAL_SRC_FILES := ../../../ijkplayer/libs/libijkffmpeg.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libijkplayer
+LOCAL_SRC_FILES := ../../../ijkplayer/libs/libijkplayer.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libijksdl
+LOCAL_SRC_FILES := ../../../ijkplayer/libs/libijksdl.so
+include $(PREBUILT_SHARED_LIBRARY)

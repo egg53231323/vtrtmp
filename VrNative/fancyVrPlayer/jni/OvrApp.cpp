@@ -16,6 +16,8 @@ Copyright   :   Copyright 2014 Oculus VR, LLC. All Rights reserved.
 #include "PathUtils.h"
 #include "Kernel\OVR_Log.h"
 
+#include "VrApi/LocalPreferences.h"
+
 //
 //#define  NoPanorama_NoStereo 0 				//非全景 非立体的影片，也就是最普通的影片
 //#define  NoPanorama_Stereo_Left_Right 1 	//非全景的 左右格式的立体影片
@@ -145,6 +147,9 @@ OvrApp::OvrApp()
 	m_pSphereScreen=new MoiveScreenSphere();
 	m_pTheatre=new MoiveTheatre();
 	m_pCurrentScreen=(MovieScreen*)m_pSphereScreen;
+	
+	// TODO ensure frontbuffer work not correct when api level > 20
+	ovr_SetLocalPreferenceValueForKey("frontbuffer", "0");
 }
 
 OvrApp::~OvrApp()
