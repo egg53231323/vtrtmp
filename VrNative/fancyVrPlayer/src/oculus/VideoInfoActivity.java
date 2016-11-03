@@ -25,6 +25,7 @@ public class VideoInfoActivity extends Activity{
 		try{
 			Bundle bundle=getIntent().getExtras();
 			final String mp4_fn=bundle.getString("filename");
+			final int rendermode=bundle.getInt("rendermode");
 			if(mp4_fn!=null){
 				Log.d(TAG,"Get String from bundle "+ mp4_fn);
 				TextView tv=(TextView)findViewById(R.id.textView1);
@@ -45,6 +46,7 @@ public class VideoInfoActivity extends Activity{
 
 					//mp4_info.putSerializable("class", this.getClass());
 					mp4_info.putString("filename", mp4_fn); //文件名
+					mp4_info.putInt("rendermode", rendermode);
 					mp4_info.putFloat("ratio", 0.75f); //宽高比
 					mp4_info.putInt("screen", sel_screen_id);//screen方式
 					mp4_info.putInt("tc", sel_tc_id);//tc方式

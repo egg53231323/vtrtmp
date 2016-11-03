@@ -91,9 +91,6 @@ AudioManager.OnAudioFocusChangeListener {
         Log.d(TAG,"Movie Wnd onCreate");
         nativeInitVrLib(0);
 		Intent intent = getIntent();
-		
-		// TODO ensure frontbuffer work not correct when api level > 20
-		nativeSetLocalPreference("frontbuffer", "0");
 
 		String commandString = VrLib.getCommandStringFromIntent( intent );
 		String fromPackageNameString = VrLib.getPackageStringFromIntent( intent );
@@ -107,9 +104,13 @@ AudioManager.OnAudioFocusChangeListener {
 		final String fn=bundle.getString("filename");
 		screenMode=bundle.getInt("screen");
 		tcMode=bundle.getInt("tc");
+		int rendermode=bundle.getInt("rendermode");
+		String strUseFrontBuffer= (rendermode==0) ? "1" : "0";
 		Log.d(TAG,"Movie filename="+fn);
 		Log.d(TAG,"Movie screen="+screenMode);
 		Log.d(TAG,"Movie tc="+tcMode);
+		
+		nativeSetLocalPreference("frontBuffer", strUseFrontBuffer);
 		
 		nativeSetScreenTcMode(appPtr, screenMode,tcMode);
 
