@@ -130,6 +130,17 @@ void Java_oculus_movieViewActivity_nativeSetScreenTcMode( JNIEnv *jni, jclass cl
 		panoVids->SetUseTheatre(cfg3);
 }
 
+void Java_oculus_movieViewActivity_nativeSetLocalPreference( JNIEnv *jni, jclass clazz, jstring key, jstring val ) {
+	SSSA_LOG_FUNCALL(1);
+	const char * keystr = jni->GetStringUTFChars( key, NULL );
+	const char * valstr = jni->GetStringUTFChars( val, NULL );
+
+	LOG( "nativeSetLocalPreference: \"%s\" = \"%s\"", keystr, valstr );
+	ovr_SetLocalPreferenceValueForKey(keystr, valstr);
+
+	jni->ReleaseStringUTFChars( key, keystr );
+	jni->ReleaseStringUTFChars( val, valstr );
+}
 
 } // extern "C"
 
@@ -148,8 +159,6 @@ OvrApp::OvrApp()
 	m_pTheatre=new MoiveTheatre();
 	m_pCurrentScreen=(MovieScreen*)m_pSphereScreen;
 	
-	// TODO ensure frontbuffer work not correct when api level > 20
-	ovr_SetLocalPreferenceValueForKey("frontbuffer", "0");
 }
 
 OvrApp::~OvrApp()

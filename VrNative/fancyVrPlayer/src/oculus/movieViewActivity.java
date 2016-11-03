@@ -50,6 +50,8 @@ IMediaPlayer.OnPreparedListener,
 AudioManager.OnAudioFocusChangeListener {
 	public static final String TAG = "FancyTech";
 	
+	String currentPathName = null;
+	
 	SurfaceTexture movieTexture = null;
 	Surface movieSurface = null;
 	IMediaPlayer mediaPlayer = null;	
@@ -74,6 +76,7 @@ AudioManager.OnAudioFocusChangeListener {
 	public static native void nativeSetScreenTcMode( long appPtr, int screenmode,int tcmode );
 	public static native void nativeUnloadAppInterface( long appPtr );
 	public static native void nativeInitVrLib( long appPtr );
+	public static native void nativeSetLocalPreference(String key, String val);
     //public native void PushData(byte[] buffer, int length);	
     public native void setupUsbDevice(int fd, int deviceType, boolean startThread);
 	static
@@ -88,6 +91,9 @@ AudioManager.OnAudioFocusChangeListener {
         Log.d(TAG,"Movie Wnd onCreate");
         nativeInitVrLib(0);
 		Intent intent = getIntent();
+		
+		// TODO ensure frontbuffer work not correct when api level > 20
+		nativeSetLocalPreference("frontbuffer", "0");
 
 		String commandString = VrLib.getCommandStringFromIntent( intent );
 		String fromPackageNameString = VrLib.getPackageStringFromIntent( intent );
@@ -425,6 +431,33 @@ AudioManager.OnAudioFocusChangeListener {
 	
 	public void onPrepared(IMediaPlayer mp) {
 		// TODO Auto-generated method stub
+		Log.i(TAG, "IMediaPlayer onPrepared called");
+		
+		// If this movie has a saved position, seek there before starting
+		// This seems to make movie switching crashier.
+		if (null != currentPathName) {
+			final int seekPos = getPreferences(MODE_PRIVATE).getInt(currentPathName + "_pos", 0);
+			if (seekPos > 0) {
+				try {
+					mediaPlayer.seekTo(seekPos);
+				}
+				catch( IllegalStateException ise ) {
+					Log.d( TAG, "mediaPlayer.seekTo(): Caught illegalStateException: " + ise.toString() );
+				}
+			}
+		}
+
+		//mediaPlayer.setLooping(false);
+
+		try {
+			Log.v(TAG, "mediaPlayer.start");
+			mediaPlayer.start();
+		}
+		catch( IllegalStateException ise ) {
+			Log.d( TAG, "mediaPlayer.start(): Caught illegalStateException: " + ise.toString() );
+		}
+		
+		mediaPlayer.setVolume(1.0f, 1.0f);
 	}
 	
 	public void onCompletion(IMediaPlayer mp) {
@@ -509,6 +542,7 @@ AudioManager.OnAudioFocusChangeListener {
 				}
 				mediaPlayer.setOnVideoSizeChangedListener(this);
 				mediaPlayer.setOnCompletionListener(this);
+				mediaPlayer.setOnPreparedListener(this);
 				mediaPlayer.setSurface(movieSurface);
 
 				try {
@@ -518,32 +552,8 @@ AudioManager.OnAudioFocusChangeListener {
 					Log.e(TAG, "mediaPlayer.setDataSource failed");
 				}
 				
+				currentPathName = pathName;
 				mediaPlayer.prepareAsync();
-				
-				Log.v(TAG, "mediaPlayer.start");
-
-				// If this movie has a saved position, seek there before starting
-				// This seems to make movie switching crashier.
-				final int seekPos = getPreferences(MODE_PRIVATE).getInt(pathName + "_pos", 0);
-				if (seekPos > 0) {
-					try {
-						mediaPlayer.seekTo(seekPos);
-					}
-					catch( IllegalStateException ise ) {
-						Log.d( TAG, "mediaPlayer.seekTo(): Caught illegalStateException: " + ise.toString() );
-					}
-				}
-
-				//mediaPlayer.setLooping(false);
-
-				try {
-					mediaPlayer.start();
-				}
-				catch( IllegalStateException ise ) {
-					Log.d( TAG, "mediaPlayer.start(): Caught illegalStateException: " + ise.toString() );
-				}
-				
-				mediaPlayer.setVolume(1.0f, 1.0f);
 
 				// Save the current movie now that it was successfully started
 				Editor edit = getPreferences(MODE_PRIVATE).edit();
