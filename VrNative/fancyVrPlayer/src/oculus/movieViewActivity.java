@@ -76,7 +76,7 @@ AudioManager.OnAudioFocusChangeListener {
 	public static native void nativeSetScreenTcMode( long appPtr, int screenmode,int tcmode );
 	public static native void nativeUnloadAppInterface( long appPtr );
 	public static native void nativeInitVrLib( long appPtr );
-	public static native void nativeSetLocalPreference(String key, String val);
+	public static native void nativeSetLocalPreference(long appPtr, String key, String val);
     //public native void PushData(byte[] buffer, int length);	
     public native void setupUsbDevice(int fd, int deviceType, boolean startThread);
 	static
@@ -104,13 +104,16 @@ AudioManager.OnAudioFocusChangeListener {
 		final String fn=bundle.getString("filename");
 		screenMode=bundle.getInt("screen");
 		tcMode=bundle.getInt("tc");
-		int rendermode=bundle.getInt("rendermode");
-		String strUseFrontBuffer= (rendermode==0) ? "1" : "0";
+		
 		Log.d(TAG,"Movie filename="+fn);
 		Log.d(TAG,"Movie screen="+screenMode);
 		Log.d(TAG,"Movie tc="+tcMode);
 		
-		nativeSetLocalPreference("frontBuffer", strUseFrontBuffer);
+		String strUseFrontBuffer = bundle.getString("rendermode", "0"); 
+		nativeSetLocalPreference(appPtr, "frontBuffer", strUseFrontBuffer);
+		
+		String strShowFPS = bundle.getString("showfps", "0");
+		nativeSetLocalPreference(appPtr, "showFPS", strShowFPS);
 		
 		nativeSetScreenTcMode(appPtr, screenMode,tcMode);
 

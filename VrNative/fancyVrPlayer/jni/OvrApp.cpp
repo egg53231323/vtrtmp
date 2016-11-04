@@ -130,13 +130,22 @@ void Java_oculus_movieViewActivity_nativeSetScreenTcMode( JNIEnv *jni, jclass cl
 		panoVids->SetUseTheatre(cfg3);
 }
 
-void Java_oculus_movieViewActivity_nativeSetLocalPreference( JNIEnv *jni, jclass clazz, jstring key, jstring val ) {
+void Java_oculus_movieViewActivity_nativeSetLocalPreference( JNIEnv *jni, jclass clazz, jlong interfacePtr, jstring key, jstring val ) {
 	SSSA_LOG_FUNCALL(1);
 	const char * keystr = jni->GetStringUTFChars( key, NULL );
 	const char * valstr = jni->GetStringUTFChars( val, NULL );
 
 	LOG( "nativeSetLocalPreference: \"%s\" = \"%s\"", keystr, valstr );
-	ovr_SetLocalPreferenceValueForKey(keystr, valstr);
+	if (MatchesHead( "showFPS", keystr ))
+	{
+		bool bShowFPS=!MatchesHead( "0", valstr );
+		OvrApp * panoVids = ( OvrApp * )( ( ( App * )interfacePtr )->GetAppInterface() );
+		panoVids->app->SetShowFPS(bShowFPS);
+	}
+	else
+	{
+		ovr_SetLocalPreferenceValueForKey(keystr, valstr);
+	}
 
 	jni->ReleaseStringUTFChars( key, keystr );
 	jni->ReleaseStringUTFChars( val, valstr );
@@ -236,7 +245,6 @@ void OvrApp::OneTimeInit( const char * fromPackage, const char * launchIntentJSO
 	VrViewParms viewParms = app->GetVrViewParms();
 	viewParms.EyeHeight = 0.0f;
 	app->SetVrViewParms( viewParms );
-	app->SetShowFPS(true);
 
 	//播放影片需要关闭time wrap
 	ovrModeParms param=app->GetVrModeParms();

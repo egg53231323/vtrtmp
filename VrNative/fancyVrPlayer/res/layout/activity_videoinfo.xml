@@ -99,6 +99,69 @@
                 android:text="vrporn" />
         </RadioGroup>
     </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <RadioGroup
+            android:id="@+id/radioGroup_renderMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/textView_renderMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RenderMode" />
+
+            <RadioButton
+                android:id="@+id/radio_normal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="normal" />
+
+            <RadioButton
+                android:id="@+id/radio_frontBuffer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="frontBuffer" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/textView200"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="    " />
+
+        <RadioGroup
+            android:id="@+id/radioGroup_showFPS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/textView_showFPS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ShowFPS" />
+
+            <RadioButton
+                android:id="@+id/radio_showFPS_no"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="no" />
+
+            <RadioButton
+                android:id="@+id/radio_showFPS_yes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="yes" />
+
+        </RadioGroup>
+    </LinearLayout>
 
     <Button
         android:id="@+id/button_play"

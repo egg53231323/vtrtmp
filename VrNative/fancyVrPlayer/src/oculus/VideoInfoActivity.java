@@ -46,10 +46,11 @@ public class VideoInfoActivity extends Activity{
 
 					//mp4_info.putSerializable("class", this.getClass());
 					mp4_info.putString("filename", mp4_fn); //文件名
-					mp4_info.putInt("rendermode", rendermode);
 					mp4_info.putFloat("ratio", 0.75f); //宽高比
 					mp4_info.putInt("screen", sel_screen_id);//screen方式
 					mp4_info.putInt("tc", sel_tc_id);//tc方式
+					mp4_info.putString("rendermode", GetRenderMode());
+					mp4_info.putString("showfps", GetShowFPS());
 					intent.putExtras(mp4_info);
 					startActivity(intent);
 				}
@@ -98,5 +99,29 @@ public class VideoInfoActivity extends Activity{
 		else
 			return VR_TC_MODE.MM_WHOLE;
 			
+	}
+	
+	String GetRenderMode()
+	{
+		String strRenderMode = "0";
+		final RadioGroup groupRenderMode = (RadioGroup)this.findViewById(R.id.radioGroup_renderMode);
+		int sel_tc_id = groupRenderMode.getCheckedRadioButtonId();
+		RadioButton rb = (RadioButton)findViewById(sel_tc_id);
+		if (rb.getId() == R.id.radio_frontBuffer) {
+			strRenderMode = "1";
+		}
+		return strRenderMode;
+	}
+	
+	String GetShowFPS()
+	{
+		String strShowFPS = "0";
+		final RadioGroup groupShowFPS = (RadioGroup)this.findViewById(R.id.radioGroup_showFPS);
+		int sel_tc_id = groupShowFPS.getCheckedRadioButtonId();
+		RadioButton rb = (RadioButton)findViewById(sel_tc_id);
+		if (rb.getId() == R.id.radio_showFPS_yes) {
+			strShowFPS = "1";
+		}
+		return strShowFPS;
 	}
 }

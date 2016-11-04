@@ -39,7 +39,6 @@ public class MainActivity extends Activity{
 	private Button button_scan;
 	private Button button_play_URL;
 	private EditText editText_URL;
-	private Spinner spinner_renderMode;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +58,6 @@ public class MainActivity extends Activity{
 				Intent intent=new Intent(MainActivity.this,VideoInfoActivity.class);
 				Bundle mp4_info=new Bundle();
 				mp4_info.putString("filename", txt);
-				mp4_info.putInt("rendermode", spinner_renderMode.getSelectedItemPosition());
 				intent.putExtras(mp4_info);
 				startActivity(intent);
 			}
@@ -93,20 +91,11 @@ public class MainActivity extends Activity{
 				Intent intent=new Intent(MainActivity.this,VideoInfoActivity.class);
 				Bundle mp4_info=new Bundle();
 				mp4_info.putString("filename", txt);
-				mp4_info.putInt("rendermode", spinner_renderMode.getSelectedItemPosition());
 				intent.putExtras(mp4_info);
 				startActivity(intent);
 			}
 		});
 		editText_URL=(EditText)findViewById(R.id.editText_URL);
-		
-		spinner_renderMode=(Spinner)findViewById(R.id.spinner_rendermode);
-		String[] strMode=new String[2];
-		strMode[0]="frontBuffer";
-		strMode[1]="normal";
-		ArrayAdapter<String> adapter=new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, strMode);
-		spinner_renderMode.setAdapter(adapter);
-		spinner_renderMode.setSelection(0);
     }
 
     //“启动任务执行的输入参数”、“后台任务执行的进度”、“后台计算结果的类型”
