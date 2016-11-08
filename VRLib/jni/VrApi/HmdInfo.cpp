@@ -28,6 +28,7 @@ enum hmdType_t
 	HMD_GALAXY_S4,		// Galaxy S4 in Samsung's holder
 	HMD_GALAXY_S5,		// Galaxy S5 1080 with lens version 2
 	HMD_GALAXY_S5_WQHD,	// Galaxy S5 1440 with lens version 2
+	HMD_GALAXY_S6,
 	HMD_NOTE_4,			// Note4
 };
 
@@ -65,6 +66,11 @@ static hmdType_t IdentifyHmdType( const char * buildModel )
 	if ( strcmp( buildModel, "SM-G906S" )  == 0 )
 	{
 		return HMD_GALAXY_S5_WQHD;
+	}
+	
+	if ( strcmp( buildModel, "SM-G9200" )  == 0  )
+	{
+		return HMD_GALAXY_S6;
 	}
 
 	if ( ( strstr( buildModel, "SM-N910" ) != NULL ) || ( strstr( buildModel, "SM-N916" ) != NULL ) )
@@ -137,6 +143,7 @@ static hmdInfoInternal_t GetHmdInfo( const hmdType_t hmdType )
 		break;
 
 	case HMD_GALAXY_S5_WQHD:            // Galaxy S5 1440 paired with version 2 lenses
+	case HMD_GALAXY_S6: // 2016-11-8 temp use S5_WQHD param for S6
 		hmdInfo.lensSeparation = 0.062f;
 		hmdInfo.eyeTextureFov[0] = 90.0f;  // 95.0f
 		hmdInfo.eyeTextureFov[1] = 90.0f;  // 95.0f

@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -21,6 +23,8 @@ public class VideoInfoActivity extends Activity{
 		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_videoinfo);
+		((EditText)findViewById(R.id.editText_LensSpe)).setInputType(EditorInfo.TYPE_CLASS_NUMBER);
+		((EditText)findViewById(R.id.editText_Fov)).setInputType(EditorInfo.TYPE_CLASS_NUMBER);
 		//得到视频的文件名
 		try{
 			Bundle bundle=getIntent().getExtras();
@@ -51,6 +55,8 @@ public class VideoInfoActivity extends Activity{
 					mp4_info.putInt("tc", sel_tc_id);//tc方式
 					mp4_info.putString("rendermode", GetRenderMode());
 					mp4_info.putString("showfps", GetShowFPS());
+					mp4_info.putString("lensSeparation", GetLensSeparation());
+					mp4_info.putString("eyeTextureFov", GetFov());
 					intent.putExtras(mp4_info);
 					startActivity(intent);
 				}
@@ -123,5 +129,15 @@ public class VideoInfoActivity extends Activity{
 			strShowFPS = "1";
 		}
 		return strShowFPS;
+	}
+	
+	String GetLensSeparation()
+	{
+		return ((EditText)findViewById(R.id.editText_LensSpe)).getText().toString();
+	}
+	
+	String GetFov()
+	{
+		return ((EditText)findViewById(R.id.editText_Fov)).getText().toString();
 	}
 }

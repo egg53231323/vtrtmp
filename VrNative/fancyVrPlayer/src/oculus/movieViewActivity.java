@@ -109,11 +109,19 @@ AudioManager.OnAudioFocusChangeListener {
 		Log.d(TAG,"Movie screen="+screenMode);
 		Log.d(TAG,"Movie tc="+tcMode);
 		
-		String strUseFrontBuffer = bundle.getString("rendermode", "0"); 
-		nativeSetLocalPreference(appPtr, "frontBuffer", strUseFrontBuffer);
+		String strVal = bundle.getString("rendermode", "0"); 
+		nativeSetLocalPreference(appPtr, "frontBuffer", strVal);
 		
-		String strShowFPS = bundle.getString("showfps", "0");
-		nativeSetLocalPreference(appPtr, "showFPS", strShowFPS);
+		strVal = bundle.getString("showfps", "0");
+		nativeSetLocalPreference(appPtr, "showFPS", strVal);
+		
+		nativeSetLocalPreference(appPtr, "UseDefaultDistortionFile", "0");
+		
+		strVal = bundle.getString("lensSeparation", "0");
+		nativeSetLocalPreference(appPtr, "lensSeparation", strVal);
+		
+		strVal = bundle.getString("eyeTextureFov", "0");
+		nativeSetLocalPreference(appPtr, "eyeTextureFov", strVal);
 		
 		nativeSetScreenTcMode(appPtr, screenMode,tcMode);
 

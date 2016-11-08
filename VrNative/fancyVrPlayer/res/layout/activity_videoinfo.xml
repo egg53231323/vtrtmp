@@ -1,7 +1,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:focusable="true"  
+    android:focusableInTouchMode="true" >
 
     <TextView
         android:id="@+id/textView1"
@@ -162,7 +164,48 @@
 
         </RadioGroup>
     </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+        
+        <TextView
+                android:id="@+id/textView_CustomParam"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="自定义透镜参数" />
+        
+        <TextView
+                android:id="@+id/textView_LensSpe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="透镜间距(毫米, 为0采用默认值)"/>
 
+        <EditText
+	        android:id="@+id/editText_LensSpe"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:digits="1234567890"
+			android:singleLine="true" 
+	        android:text="0"/>
+        
+        <TextView
+                android:id="@+id/textView_Fov"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="视场角(度, 为0采用默认值)"/>
+
+        <EditText
+	        android:id="@+id/editText_Fov"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:digits="1234567890"
+			android:singleLine="true" 
+	        android:text="0"/>
+        
+    </LinearLayout>
+    
     <Button
         android:id="@+id/button_play"
         android:layout_width="wrap_content"

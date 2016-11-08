@@ -54,7 +54,8 @@ public:
 		VrLibClass( NULL ),
 		ActivityObject( NULL ),
 		GameThreadTid( 0 ),
-		BuildVersionSDK( 0 ) {}
+		BuildVersionSDK( 0 ),
+		UseDefaultDistortionFile(false) {}
 
 	// Graphics debug and video capture tools may not like front buffer rendering.
 	bool				FrontBuffer;
@@ -84,6 +85,9 @@ public:
 	pid_t				GameThreadTid;
 
 	int					BuildVersionSDK;
+	
+	// If true, search DefaultDistortionFile at DefaultPath
+	bool				UseDefaultDistortionFile;
 };
 
 // Abstract interface

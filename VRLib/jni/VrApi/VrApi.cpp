@@ -1403,6 +1403,18 @@ static void UpdateHmdInfo( ovrMobile * ovr )
 	// Update the dimensions in pixels directly from the window
 	ovr->HmdInfo.widthPixels = windowSurfaceWidth;
 	ovr->HmdInfo.heightPixels = windowSurfaceHeight;
+	
+	int nLensSeparation = atoi( ovr_GetLocalPreferenceValueForKey(LOCAL_PREF_LENS_SEPARATION, "0") );
+	if (0!=nLensSeparation)
+	{
+		ovr->HmdInfo.lensSeparation = nLensSeparation/1000.0f;
+	}
+	int nEyeTextureFov = atoi( ovr_GetLocalPreferenceValueForKey(LOCAL_PREF_EYE_TEXTURE_FOV, "0") );
+	if (0!=nEyeTextureFov)
+	{
+		ovr->HmdInfo.eyeTextureFov[0] = nEyeTextureFov;
+		ovr->HmdInfo.eyeTextureFov[1] = nEyeTextureFov;
+	}
 
 	LOG( "hmdInfo.lensSeparation = %f", ovr->HmdInfo.lensSeparation );
 	LOG( "hmdInfo.widthMeters = %f", ovr->HmdInfo.widthMeters );
@@ -1654,6 +1666,7 @@ ovrMobile * ovr_EnterVrMode( ovrModeParms parms, ovrHmdInfo * returnedHmdInfo )
 	// front buffer rendering.
 	ovr->Twp.BuildVersionSDK = BuildVersionSDK;
 	ovr->Twp.ExternalStorageDirectory = externalStorageDirectory;
+	ovr->Twp.UseDefaultDistortionFile = atoi( ovr_GetLocalPreferenceValueForKey( LOCAL_PREF_USE_DEFAULT_DISTORTIONFILE, "1" ) ) != 0;
 	ovr->Warp = OVR::TimeWarp::Factory( ovr->Twp );
 
 	// Enable our real time scheduling.

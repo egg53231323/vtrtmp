@@ -47,6 +47,12 @@ extern "C" {
 
 #define LOCAL_PREF_DEV_GPU_TIMINGS		"dev_gpuTimings"			// "0" or "1"
 
+#define LOCAL_PREF_USE_DEFAULT_DISTORTIONFILE	"UseDefaultDistortionFile" // "0" or "1"
+
+#define LOCAL_PREF_LENS_SEPARATION "lensSeparation" // "=0 use default, in millimeter"
+
+#define LOCAL_PREF_EYE_TEXTURE_FOV "eyeTextureFov" // "=0 use default, in degree"
+
 // Called on each resume, synchronously fetches the data.
 void	ovr_UpdateLocalPreferences();
 

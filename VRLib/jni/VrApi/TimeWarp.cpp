@@ -2556,13 +2556,17 @@ void TimeWarpLocal::CreateFrameworkGraphics()
 		}
 	}
 	else
-	{	// Look for the default file
-		String fullPath = InitParms.ExternalStorageDirectory + DefaultDistortionFile;
-		LOG( "Loading distortion file: %s", fullPath.ToCStr() );
-		MemBufferFile defaultFile( fullPath );
-		if ( defaultFile.Length > 0 )
+	{
+		if (InitParms.UseDefaultDistortionFile)
 		{
-			buf = defaultFile.ToMemBuffer();
+			// Look for the default file
+			String fullPath = InitParms.ExternalStorageDirectory + DefaultDistortionFile;
+			LOG( "Loading distortion file: %s", fullPath.ToCStr() );
+			MemBufferFile defaultFile( fullPath );
+			if ( defaultFile.Length > 0 )
+			{
+				buf = defaultFile.ToMemBuffer();
+			}
 		}
 
 		if ( buf.Buffer == NULL )
