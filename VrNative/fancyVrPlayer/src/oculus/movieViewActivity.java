@@ -115,10 +115,17 @@ AudioManager.OnAudioFocusChangeListener {
 		strVal = bundle.getString("showfps", "0");
 		nativeSetLocalPreference(appPtr, "showFPS", strVal);
 		
-		nativeSetLocalPreference(appPtr, "UseDefaultDistortionFile", "0");
-		
 		strVal = bundle.getString("lensSeparation", "0");
-		nativeSetLocalPreference(appPtr, "lensSeparation", strVal);
+		if (strVal == "0")
+		{
+			nativeSetLocalPreference(appPtr, "UseDefaultDistortionFile", "0");
+			nativeSetLocalPreference(appPtr, "lensSeparation", strVal);
+		}
+		else
+		{
+			nativeSetLocalPreference(appPtr, "UseDefaultDistortionFile", "1");
+			nativeSetLocalPreference(appPtr, "lensSeparation", strVal);
+		}
 		
 		strVal = bundle.getString("eyeTextureFov", "0");
 		nativeSetLocalPreference(appPtr, "eyeTextureFov", strVal);
