@@ -41,7 +41,7 @@
 	        android:id="@+id/editText_URL"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:text="rtmp://172.17.100.141:8092/live/256" />
+	        android:text="http://172.17.100.141:8091/hls/256.m3u8" />
 
 	</LinearLayout>
 
