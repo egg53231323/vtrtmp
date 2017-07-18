@@ -31,6 +31,7 @@ import android.hardware.usb.UsbManager;
 import com.oculusvr.vrlib.VrActivity;
 import com.oculusvr.vrlib.VrLib;
 
+import tv.danmaku.ijk.media.player.AndroidMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer.OnBufferingUpdateListener;
 import tv.danmaku.ijk.media.player.IMediaPlayer.OnCompletionListener;
@@ -557,7 +558,10 @@ AudioManager.OnAudioFocusChangeListener {
 				Log.v(TAG, "MediaPlayer.create");
 
 				synchronized (this) {
-					mediaPlayer = new IjkMediaPlayer();
+					//mediaPlayer = new IjkMediaPlayer();
+					//IjkMediaPlayer ijkMediaPlayer = (IjkMediaPlayer)mediaPlayer;
+					//ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_YV12);
+					mediaPlayer = new AndroidMediaPlayer();
 				}
 				mediaPlayer.setOnVideoSizeChangedListener(this);
 				mediaPlayer.setOnCompletionListener(this);
